@@ -16,4 +16,4 @@ Rasterizer that utilizes the OpenGL API devloped by Khronos Group
 # References
 
 - [OpenGL Official Documentation](https://www.khronos.org/opengl/)
-- [Learning OpenGL](https://learnopengl.com/)]
+- [Learning OpenGL](https://learnopengl.com/)
