@@ -57,13 +57,41 @@ target_include_directories(${PROJECT_NAME}
         "${EXTERNAL_INCLUDE_DIR}/glad" # Still needed for your other C++ files that include glad.h
 )
 
-# Link specific libraries by name (without .lib extension)
+# Link GLAD
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
-        glad_objects # <--- Link the newly created GLAD object library
-        "${EXTERNAL_LIB_DIR}/glfw3.lib"
-        opengl32    
+        glad_objects
 )
+
+# Platform-specific linking
+if(WIN32)
+    target_link_libraries(${PROJECT_NAME}
+        PRIVATE
+            "${EXTERNAL_LIB_DIR}/glfw3.lib"
+            opengl32
+    )
+elseif(UNIX)
+    # Manually link GLFW static/dynamic on Linux
+    target_link_libraries(${PROJECT_NAME}
+        PRIVATE
+            "${EXTERNAL_LIB_DIR}/libglfw3.a"  # Or .so if you're using shared GLFW
+    )
+
+    # Link OpenGL and dependencies
+    find_package(OpenGL REQUIRED)
+    target_link_libraries(${PROJECT_NAME}
+        PRIVATE
+            OpenGL::GL
+            dl
+            pthread
+            X11
+            Xrandr
+            Xi
+            Xxf86vm
+            Xcursor
+    )
+endif()
+
 
 # Debug macro
 target_compile_definitions(${PROJECT_NAME}
