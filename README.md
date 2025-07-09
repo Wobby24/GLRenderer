@@ -1,5 +1,5 @@
 # GLRenderer
-Rasterizer that utilizes the OpenGL API devloped by Khronos Group
+Rasterizer that utilizes the OpenGL API developed by Khronos Group
 
 # Features
 - **As of now, there is nothing implemented**. This is just a placeholder for future development.

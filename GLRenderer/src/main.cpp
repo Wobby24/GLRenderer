@@ -1,9 +1,12 @@
 #include <iostream>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include <Engine.hpp>
 
 int main() {
-	std::cout << "Hello World!" << std::endl;
+	Engine app;
+
+	app.initialize();
+	app.run();
+	app.shutdown();
 
 	return 0;
 }
