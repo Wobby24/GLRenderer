@@ -34,19 +34,16 @@ set(PROJECT_SOURCES
     "${SRC_DIR}/GLRenderer/GLRenderer.cpp"
     "${SRC_DIR}/GLRenderer/OpenGL/OpenGLInitializer.cpp"
     "${SRC_DIR}/GLRenderer/Window/Window.cpp"
-    "${SRC_DIR}/Engine.cpp")
-
-message(STATUS "GLAD source file (now part of glad_objects): ${SRC_DIR}/glad/glad.c")
+    "${SRC_DIR}/Engine.cpp" 
+    "${SRC_DIR}/GLRenderer/OpenGL/Scenes/C1/HelloTriangle.cpp")
 
 # Executable
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES}) # glad.c is NOT here directly anymore!
-
 
 # Post-build copy: only valid after the target exists
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND cmd /c if exist "${CMAKE_SOURCE_DIR}\\GLRenderer\\res" xcopy /E /I /Y "${CMAKE_SOURCE_DIR}\\GLRenderer\\res" "$<TARGET_FILE_DIR:${PROJECT_NAME}>\\res"
 )
-
 
 # Includes for the main executable
 target_include_directories(${PROJECT_NAME}
