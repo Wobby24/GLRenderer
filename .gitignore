@@ -419,3 +419,11 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+
+#Libraries, these should all be added via CMake or otherwise
+*.dll
+*.lib
+*.a  
+*.so 
+*.dylib
