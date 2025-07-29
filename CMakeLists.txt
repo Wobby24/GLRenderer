@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(GLRenderer VERSION 1.0 LANGUAGES CXX C)
+cmake_policy(SET CMP0074 NEW)
 
 # C++ Standard
 set(CMAKE_CXX_STANDARD 20)
@@ -45,6 +46,16 @@ set(PROJECT_SOURCES
     "${SRC_DIR}/Engine.cpp" 
     "${SRC_DIR}/GLRenderer/OpenGL/Scenes/C1/HelloTriangle.cpp" "GLRenderer/src/GLRenderer/OpenGL/GLMeshBuffers.cpp")
 
+include(FetchContent)
+
+FetchContent_Declare(
+    glfw
+    GIT_REPOSITORY https://github.com/glfw/glfw.git
+    GIT_TAG 3.3.8 # or latest stable version
+)
+
+FetchContent_MakeAvailable(glfw)
+
 # Executable
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES}) # glad.c is NOT here directly anymore!
 
@@ -72,20 +83,22 @@ target_link_libraries(${PROJECT_NAME}
 if(WIN32)
     target_link_libraries(${PROJECT_NAME}
         PRIVATE
-            "${EXTERNAL_LIB_DIR}/glfw3.lib"
+            glfw
             opengl32
     )
-elseif(UNIX)
-    # Manually link GLFW static/dynamic on Linux
+elseif(APPLE)
     target_link_libraries(${PROJECT_NAME}
         PRIVATE
-            "${EXTERNAL_LIB_DIR}/libglfw3.a"  # Or .so if you're using shared GLFW
+            glfw
+            "-framework OpenGL"
+            "-framework Cocoa"
+            "-framework IOKit"
+            "-framework CoreVideo"
     )
-
-    # Link OpenGL and dependencies
-    find_package(OpenGL REQUIRED)
+elseif(UNIX)
     target_link_libraries(${PROJECT_NAME}
         PRIVATE
+            glfw
             OpenGL::GL
             dl
             pthread
@@ -96,7 +109,6 @@ elseif(UNIX)
             Xcursor
     )
 endif()
-
 
 # Debug macro
 target_compile_definitions(${PROJECT_NAME}
