@@ -3,13 +3,10 @@
 
 namespace GLRenderer {
 
+	//destructor is default since we need explicit control over the mesh buffers
+
 	GLMeshBuffers::GLMeshBuffers() : VAO_(0), VBO_(0), EBO_(0), indexCount_(0) {}
 
-	GLMeshBuffers::~GLMeshBuffers() {
-		if (EBO_) glDeleteBuffers(1, &EBO_);
-		if (VBO_) glDeleteBuffers(1, &VBO_);
-		if (VAO_) glDeleteBuffers(1, &VAO_);
-	}
 	void GLMeshBuffers::CreateAll(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, int attributes) {
 		CreateVertices(vertices, attributes);
 		CreateIndices(indices);
@@ -42,14 +39,22 @@ namespace GLRenderer {
 			glEnableVertexAttribArray(0);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
 		}
-		if (attributes & TEXCOORD) {
+
+		//if (attributes )
+	/*	if (attributes & TEXCOORD) {
 			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
 		}
 		if (attributes & NORMAL) {
 			glEnableVertexAttribArray(2);
-			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-		}
+			glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+		}*/
+	}
+
+	void GLMeshBuffers::Cleanup() {
+		if (EBO_) glDeleteBuffers(1, &EBO_);
+		if (VBO_) glDeleteBuffers(1, &VBO_);
+		if (VAO_) glDeleteBuffers(1, &VAO_);
 	}
 
 	void GLMeshBuffers::Bind() const {

@@ -9,7 +9,7 @@ namespace GLRenderer {
 	class GLMeshBuffers : public IMeshBuffers {
 	public:
 		GLMeshBuffers();
-		~GLMeshBuffers() override;
+		~GLMeshBuffers() override = default;
 
 		void CreateAll(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, int attributes = 0) override;
 		void CreateVertices(const std::vector<Vertex>& vertices, int attributes = 0) override;
@@ -17,6 +17,8 @@ namespace GLRenderer {
 
 		void Bind() const override;
 		void Unbind() const override;
+
+		void Cleanup() override;
 
 	private:
 		void EnableAttributes(int attributes);

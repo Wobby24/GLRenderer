@@ -6,8 +6,9 @@
 namespace GLRenderer {
     enum VertexAttribFlags {
         POSITION = 1 << 0,
-        TEXCOORD = 1 << 1,
-        NORMAL = 1 << 2
+        COLOR = 1 << 1,
+    //    TEXCOORD = 1 << 1,
+      //  NORMAL = 1 << 2
     };
 
     class IMeshBuffers {
@@ -20,6 +21,8 @@ namespace GLRenderer {
 
         virtual void Bind() const = 0;
         virtual void Unbind() const = 0;
+
+        virtual void Cleanup() = 0; // <-- Add this! This is for manual cleanup, since this class will be appart of other classes
     };
 }
 

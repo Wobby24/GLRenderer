@@ -1,6 +1,8 @@
 #include <glad/glad.h> // or your loader
 #include <GLFW/glfw3.h>
-#include <GlRenderer/Interface/IRenderScene.hpp>
+#include <GLRenderer/Interface/IRenderScene.hpp>
+#include <GLRenderer/Interface/Vertex.hpp>
+#include <GLRenderer/OpenGL/GLMeshBuffers.hpp>
 #include <iostream>
 
 namespace GLRenderer {
@@ -31,13 +33,15 @@ namespace GLRenderer {
 			0, 1, 3,   // first triangle
 			1, 2, 3    // second triangle
 		};
-		float tri_vertices_[9] = {
-		-0.5f, -0.5f, 0.0f,
-		 0.5f, -0.5f, 0.0f,
-		 0.0f,  0.5f, 0.0f
+
+		std::vector<Vertex> triVerts_ = {
+			{-0.5f, -0.5f, 0.0f}, 
+			{ 0.5f, -0.5f, 0.0f},
+			{ 0.0f,  0.5f, 0.0f}
 		};
-		// Vertex Buffer Object and Vertex Array Object, Don't use the GLMeshBuffers just quite yet
-		unsigned int VBO_, VAO_, EBO_;
+
+		//We can now use GLMeshBuffers for centralized mesh control
+		GLMeshBuffers meshBuffer_;
 
 		// Initialization, cleanup, and wireframe flags
 		bool isInitialized_ = false;

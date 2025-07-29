@@ -80,24 +80,12 @@ namespace GLRenderer
     }
 
     void HelloTriangle::SetupBuffers() {
-        glGenVertexArrays(1, &VAO_);
-        glBindVertexArray(VAO_); // <-- BIND FIRST
-
-        glGenBuffers(1, &VBO_);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO_);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(tri_vertices_), tri_vertices_, GL_STATIC_DRAW);
-
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(0);
-
-        //EBO (Element Buffer Object) for indexed drawing
-    //	glGenBuffers(1, &EBO_);
-        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_);
-        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices_), indices_, GL_STATIC_DRAW);
-
-        // Don't unbind EBO here. Let the VAO keep the EBO binding.
-        glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind the VBO (not strictly necessary, but good practice)
-        glBindVertexArray(0); // optional: unbind VAO
+        //bind the buffers so we can modify them
+        meshBuffer_.Bind();
+        //upload our data with the vert attrib 'position'
+        meshBuffer_.CreateVertices(triVerts_, GLRenderer::POSITION);
+        //unbind to avoid unwanted modifications
+        meshBuffer_.Unbind();
     }
 
     void HelloTriangle::Update(float deltaTime) {
@@ -105,16 +93,17 @@ namespace GLRenderer
     }
 
     void HelloTriangle::Render() {
+        //only render if we are initialized
         if (!isInitialized_) {
             std::cerr << "TriangleScene not initialized!" << std::endl;
             return;
         }
-
+        //only render if we haven't cleaned up yet
         if (isCleaned_) {
             std::cerr << "TriangleScene already cleaned up!" << std::endl;
             return;
         }
-
+        //allow wireframe toggle
         if (isWireframe_) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Set wireframe mode
         }
@@ -123,16 +112,18 @@ namespace GLRenderer
         }
         //Render the triangle(s)
         glUseProgram(shaderProgram);
-        glBindVertexArray(VAO_);
-        //  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        //bind the mesh for drawing
+        meshBuffer_.Bind();
+        //  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // for drawing 2 trianges with indices
+        //draw triange
         glDrawArrays(GL_TRIANGLES, 0, 3); // Draw the triangle using the vertex data
-        glBindVertexArray(0);
+        //unbind
+        meshBuffer_.Unbind();
     }
 
     void HelloTriangle::Cleanup() {
-        glDeleteVertexArrays(1, &VAO_);
-        glDeleteBuffers(1, &VBO_);
-        glDeleteBuffers(1, &EBO_);
+        //cleanup mesh buffer, set is cleaned to true
+        meshBuffer_.Cleanup();
         isCleaned_ = true;
     }
 }
