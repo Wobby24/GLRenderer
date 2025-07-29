@@ -2,6 +2,23 @@ cmake_minimum_required(VERSION 3.16)
 project(GLRenderer VERSION 1.0 LANGUAGES CXX C)
 cmake_policy(SET CMP0074 NEW)
 
+if (MSVC)
+    # Remove any existing /W flags that could conflict
+    string(REGEX REPLACE "/W[0-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    add_compile_options(/W4 /WX)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    # Apple Clang (macOS)
+    add_compile_options(-Wall -Wextra -Werror)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    # Other Clang (Linux or BSD)
+    add_compile_options(-Wall -Wextra -Werror)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    # GCC
+    add_compile_options(-Wall -Wextra -Werror)
+else()
+    message(WARNING "Unknown compiler, warnings as errors not enabled")
+endif()
+
 # C++ Standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

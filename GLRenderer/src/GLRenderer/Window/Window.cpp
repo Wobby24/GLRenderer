@@ -39,9 +39,10 @@ namespace GLRenderer::Window
 		glfwTerminate();
 		isCleanedUp_ = true;
 	}
-	
+
 	void Window::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	{
+		(void)window; // Silence unused parameter warning
 		glViewport(0, 0, width, height);
 	}
 
