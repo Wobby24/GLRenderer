@@ -15,6 +15,14 @@ set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/GLRenderer/inc")
 set(LIB_DIR "${CMAKE_SOURCE_DIR}/GLRenderer/lib")
 set(EXTERNAL_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/GLRenderer/ext/inc")
 set(EXTERNAL_LIB_DIR "${CMAKE_SOURCE_DIR}/GLRenderer/ext/lib")
+if(WIN32)
+    set(EXTERNAL_LIB_PLATFORM_DIR "${EXTERNAL_LIB_DIR}/windows")
+elseif(APPLE)
+    set(EXTERNAL_LIB_PLATFORM_DIR "${EXTERNAL_LIB_DIR}/macos")
+elseif(UNIX)
+    set(EXTERNAL_LIB_PLATFORM_DIR "${EXTERNAL_LIB_DIR}/linux")
+endif()
+
 
 # ----------------------------------------------------
 # Define GLAD as an OBJECT library
@@ -35,7 +43,7 @@ set(PROJECT_SOURCES
     "${SRC_DIR}/GLRenderer/OpenGL/OpenGLInitializer.cpp"
     "${SRC_DIR}/GLRenderer/Window/Window.cpp"
     "${SRC_DIR}/Engine.cpp" 
-    "${SRC_DIR}/GLRenderer/OpenGL/Scenes/C1/HelloTriangle.cpp")
+    "${SRC_DIR}/GLRenderer/OpenGL/Scenes/C1/HelloTriangle.cpp" "GLRenderer/src/GLRenderer/OpenGL/GLMeshBuffers.cpp")
 
 # Executable
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES}) # glad.c is NOT here directly anymore!
