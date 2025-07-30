@@ -4,16 +4,21 @@ Rasterizer that utilizes the OpenGL API developed by Khronos Group
 # Features
 - **As of now, there is nothing implemented (Except for a red triangle being rendered)**. This is just a placeholder for future development.
 
-# Goals
+# Build Instructions
 
-- Implement an advanced rasterizer that can handle complex scenes.
-- Support for various shading techniques.
-- Integration with modern OpenGL features.
-- Performance optimizations for real-time rendering.
-- Extensive documentation and examples for users.
-- Support for various input formats and scene descriptions.
+This project uses **CMake** to generate the build system. To build the project:
 
-# References
+```bash
+# Clone the repository and enter it
+git clone https://github.com/Wobby24/GLRenderer.git
+cd GLRenderer
 
-- [OpenGL Official Documentation](https://www.khronos.org/opengl/)
-- [LearnOpenGL](https://learnopengl.com/)
+# Create a separate build directory
+mkdir build
+cd build
+
+# Generate build files
+cmake ..
+
+# Build the project
+cmake --build .
