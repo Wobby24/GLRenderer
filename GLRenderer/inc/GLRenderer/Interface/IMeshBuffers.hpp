@@ -7,8 +7,6 @@ namespace GLRenderer {
     enum VertexAttribFlags {
         POSITION = 1 << 0,
         COLOR = 1 << 1,
-    //    TEXCOORD = 1 << 1,
-      //  NORMAL = 1 << 2
     };
 
     class IMeshBuffers {

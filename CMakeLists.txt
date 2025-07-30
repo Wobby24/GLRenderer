@@ -61,7 +61,7 @@ set(PROJECT_SOURCES
     "${SRC_DIR}/GLRenderer/OpenGL/OpenGLInitializer.cpp"
     "${SRC_DIR}/GLRenderer/Window/Window.cpp"
     "${SRC_DIR}/Engine.cpp" 
-    "${SRC_DIR}/GLRenderer/OpenGL/Scenes/C1/HelloTriangle.cpp" "GLRenderer/src/GLRenderer/OpenGL/GLMeshBuffers.cpp")
+    "${SRC_DIR}/GLRenderer/OpenGL/Scenes/C1/HelloTriangle.cpp" "GLRenderer/src/GLRenderer/OpenGL/GLMeshBuffers.cpp" "GLRenderer/src/GLRenderer/OpenGL/GLShader.cpp")
 
 include(FetchContent)
 

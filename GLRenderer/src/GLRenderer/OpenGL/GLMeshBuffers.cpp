@@ -40,13 +40,18 @@ namespace GLRenderer {
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
 		}
 
+		if (attributes & COLOR) {
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+		}
+
 		//if (attributes )
 	/*	if (attributes & TEXCOORD) {
-			glEnableVertexAttribArray(1);
+			glEnableVertexAttribArray(2)
 			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
 		}
 		if (attributes & NORMAL) {
-			glEnableVertexAttribArray(2);
+			glEnableVertexAttribArray(3);
 			glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
 		}*/
 	}
