@@ -2,7 +2,7 @@
 
 namespace GLRenderer
 {
-    HelloTriangle::HelloTriangle() : VBO_(0), VAO_(0), EBO_(0), isInitialized_(false), isCleaned_(false), isWireframe_(false), fragmentShader(0), vertexShader(0), shaderProgram(0) {}
+    HelloTriangle::HelloTriangle() : isInitialized_(false), isCleaned_(false), isWireframe_(false), fragmentShader(0), vertexShader(0), shaderProgram(0) {}
 
     HelloTriangle::~HelloTriangle() {
         if (!isInitialized_ || isCleaned_) return;
