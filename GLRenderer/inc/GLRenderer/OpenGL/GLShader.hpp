@@ -26,9 +26,11 @@ namespace GLRenderer {
 		unsigned int getID() const;
 	private:
 		bool isCleanedUp_ = false;
+		bool isInit_ = false;
 		unsigned int id_ = 0;
 		mutable std::unordered_map<std::string, int> uniformLocationCache_;
 		std::string vertexPath_, fragmentPath_;
+		void assertInitialized() const;
 		bool isGLReady() const;
 		void checkCompileErrors(unsigned int shader, std::string type);
 		void createShaders();

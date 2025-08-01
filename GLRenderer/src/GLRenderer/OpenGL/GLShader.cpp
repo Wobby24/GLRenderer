@@ -3,7 +3,7 @@
 namespace GLRenderer {
 
 	GLShader::GLShader(std::string vertexPath, std::string fragmentPath)
-		: vertexPath_(std::move(vertexPath)), fragmentPath_(std::move(fragmentPath)), id_(0), isCleanedUp_(false)
+		: vertexPath_(std::move(vertexPath)), fragmentPath_(std::move(fragmentPath)), id_(0), isCleanedUp_(false), isInit_(0)
 	{}
 
 	GLShader::~GLShader() {
@@ -17,12 +17,14 @@ namespace GLRenderer {
 			glDeleteProgram(id_);
 			id_ = 0;
 		}
-
 		isCleanedUp_ = true;
 	}
 
 	//use program method
-	void GLShader::use() const { glUseProgram(id_); }
+	void GLShader::use() const { 
+		assertInitialized();
+		glUseProgram(id_); 
+	}
 
 	//get method for the ID
 	unsigned int GLShader::getID() const { return id_; }
@@ -30,26 +32,41 @@ namespace GLRenderer {
 	//* Set uniform methods *\\
 	//bool
 	void GLShader::setBool(const std::string& name, bool value) const {
+		assertInitialized();
 		glUniform1i(getUniformLocation(name), (int)value);
 	}
+
 	//int
 	void GLShader::setInt(const std::string& name, int value) const {
+		assertInitialized();
 		glUniform1i(getUniformLocation(name), value);
 	}
+
 	//float
 	void GLShader::setFloat(const std::string& name, float value) const {
+		assertInitialized();
 		glUniform1f(getUniformLocation(name), value);
 	}
 
+	//checks if gl is init
 	bool GLShader::isGLReady() const {
 		return glCreateShader != nullptr; // or check any known GL function
 	}
 
+	//use this to create shaders/init them when first using them
 	void GLShader::init() {
 		if (!isGLReady()) {
 			throw std::runtime_error("Cannot initialize shader: OpenGL context not ready.");
 		}
-		reload();  // better encapsulation
+		isInit_ = true;  // mark as initialized first!
+		reload();        // safe to call now
+	}
+
+	//use to check if init without needing if statements everywhere
+	void GLShader::assertInitialized() const {
+		if (!isInit_) {
+			throw std::runtime_error("GLShader is not initialized. Call init() first.");
+		}
 	}
 
 	//Create Shaders
@@ -94,13 +111,20 @@ namespace GLRenderer {
 	}
 
 	void GLShader::reload() {
-		cleanup();                  // Deletes current shader
-		isCleanedUp_ = false;       // Reset flag before reloading
-		uniformLocationCache_.clear(); // Clear cache
-		createShaders();            // Creates new shader, updates id_
+		assertInitialized();
+
+		if (!isCleanedUp_) {
+			cleanup();
+		}
+		isCleanedUp_ = false; // mark as active again
+
+		uniformLocationCache_.clear();
+		createShaders();
 	}
 
+
 	int GLShader::getUniformLocation(const std::string& name) const {
+		assertInitialized();
 		// Check cache first
 		auto it = uniformLocationCache_.find(name);
 		if (it != uniformLocationCache_.end()) {
@@ -152,6 +176,7 @@ namespace GLRenderer {
 
 	void GLShader::checkCompileErrors(unsigned int shader, std::string type)
 	{
+		assertInitialized();
 		int success;
 		char infoLog[1024];
 
