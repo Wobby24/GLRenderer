@@ -2,7 +2,7 @@
 Rasterizer that utilizes the OpenGL API developed by Khronos Group
 
 # Features
-- **As of now, there is nothing implemented (Except for a red triangle being rendered)**. This is just a placeholder for future development.
+- **As of now, there is nothing implemented (Except for a color interpolated triangle being rendered)**. This is just a placeholder for future development.
 
 # Build Instructions
 

@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <GLRenderer/Interface/IRenderScene.hpp>
 #include <GLRenderer/Interface/Vertex.hpp>
+#include <GLRenderer/OpenGL/GLShader.hpp>
 #include <GLRenderer/OpenGL/GLMeshBuffers.hpp>
 #include <iostream>
 
@@ -16,10 +17,6 @@ namespace GLRenderer {
 		void Cleanup() override;
 		SceneID GetSceneID() const override { return SceneID::HelloTriangle; }
 	private:
-		void SetupShaders();
-		void SetupVertexShader();
-		void SetupFragmentShader();
-		void SetupShaderProgram();
 		void SetupBuffers();
 		// Vertex data for a triangle
 		float vertices_[12] = {
@@ -49,34 +46,14 @@ namespace GLRenderer {
 
 		//We can now use GLMeshBuffers for centralized mesh control
 		GLMeshBuffers meshBuffer_;
+		//shader class that handles external shader files aswell as teh shaders and the program themselves/itself
+		GLShader mainShader_;
 
 		// Initialization, cleanup, and wireframe flags
 		bool isInitialized_ = false;
 		bool isCleaned_ = false;
 		bool isWireframe_ = false;
 
-		//vertex and fragment shader ID, as-well as shader program ID
-		unsigned int vertexShader_, fragmentShader_, shaderProgram_;
-
-		//Vertex shader code
-		const char* vertexShaderSource = "#version 460 core\n"
-			"layout (location = 0) in vec3 aPos;\n"
-			"layout (location = 1) in vec3 aColor;\n"
-			"out vec3 ourColor;\n"
-			"void main()\n"
-			"{\n"
-			"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-			"   ourColor = aColor;\n"
-			"}\0";
-
-		// Fragment shader code
-		const char* fragmentShaderSource = "#version 460 core\n"
-			"out vec4 FragColor;\n"
-			"in vec3 ourColor;\n"
-			"void main()\n"
-			"{\n"
-			"   FragColor = vec4(ourColor, 1.0);\n"
-			"}\0";
 	};
 }
 

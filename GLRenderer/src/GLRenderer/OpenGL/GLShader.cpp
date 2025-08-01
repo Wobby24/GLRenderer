@@ -1,5 +1,184 @@
-#include <GLRenderer/Interface/IShader.hpp>
+#include "GLRenderer/OpenGL/GLShader.hpp"
 
 namespace GLRenderer {
 
-}
+	GLShader::GLShader(std::string vertexPath, std::string fragmentPath)
+		: vertexPath_(std::move(vertexPath)), fragmentPath_(std::move(fragmentPath)), id_(0), isCleanedUp_(false)
+	{}
+
+	GLShader::~GLShader() {
+		cleanup();
+	}
+
+	void GLShader::cleanup() {
+		if (isCleanedUp_) return;
+
+		if (id_ != 0) {
+			glDeleteProgram(id_);
+			id_ = 0;
+		}
+
+		isCleanedUp_ = true;
+	}
+
+	//use program method
+	void GLShader::use() const { glUseProgram(id_); }
+
+	//get method for the ID
+	unsigned int GLShader::getID() const { return id_; }
+
+	//* Set uniform methods *\\
+	//bool
+	void GLShader::setBool(const std::string& name, bool value) const {
+		glUniform1i(getUniformLocation(name), (int)value);
+	}
+	//int
+	void GLShader::setInt(const std::string& name, int value) const {
+		glUniform1i(getUniformLocation(name), value);
+	}
+	//float
+	void GLShader::setFloat(const std::string& name, float value) const {
+		glUniform1f(getUniformLocation(name), value);
+	}
+
+	bool GLShader::isGLReady() const {
+		return glCreateShader != nullptr; // or check any known GL function
+	}
+
+	void GLShader::init() {
+		if (!isGLReady()) {
+			throw std::runtime_error("Cannot initialize shader: OpenGL context not ready.");
+		}
+		reload();  // better encapsulation
+	}
+
+	//Create Shaders
+	void GLShader::createShaders() {
+		//1. retrieve the vertex/fragment source code from the file path
+		std::string vertexCode, fragmentCode;
+		std::ifstream vShaderFile, fShaderFile;
+
+		//ensure ifstream objects are able to throw exceptions:
+		vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+		fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+		//function will handle file io for teh ifstreams and then put them into our vertex code and fragment code
+
+		handleFileIO(vShaderFile, fShaderFile, vertexCode, fragmentCode);
+
+		const char* vShaderCode = vertexCode.c_str();
+		const char* fShaderCode = fragmentCode.c_str();
+
+		//2. Compile and link the shaders
+		unsigned int vertex, fragment;
+
+		//vert shader
+		vertex = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(vertex, 1, &vShaderCode, NULL);
+		glCompileShader(vertex);
+		checkCompileErrors(vertex, "VERTEX");
+		//frag shader
+		fragment = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(fragment, 1, &fShaderCode, NULL);
+		glCompileShader(fragment);
+		checkCompileErrors(fragment, "FRAGMENT");
+		//shader program
+		id_ = glCreateProgram();
+		glAttachShader(id_, vertex);
+		glAttachShader(id_, fragment);
+		glLinkProgram(id_);
+		checkCompileErrors(id_, "PROGRAM");
+		//delete shaders as they are linked into the program and are no longer needed
+		glDeleteShader(vertex);
+		glDeleteShader(fragment);
+	}
+
+	void GLShader::reload() {
+		cleanup();                  // Deletes current shader
+		isCleanedUp_ = false;       // Reset flag before reloading
+		uniformLocationCache_.clear(); // Clear cache
+		createShaders();            // Creates new shader, updates id_
+	}
+
+	int GLShader::getUniformLocation(const std::string& name) const {
+		// Check cache first
+		auto it = uniformLocationCache_.find(name);
+		if (it != uniformLocationCache_.end()) {
+			return it->second;
+		}
+		// Query OpenGL for the uniform location
+		int location = glGetUniformLocation(id_, name.c_str());
+		if (location == -1) {
+			std::cerr << "Warning: uniform '" << name << "' doesn't exist or is not used in shader.\n";
+		}
+		uniformLocationCache_[name] = location;
+		return location;
+	}
+
+	void GLShader::handleFileIO(std::ifstream& vShaderFile, std::ifstream& fShaderFile,
+		std::string& vertexCode, std::string& fragmentCode) {
+		try {
+			// Open files
+			vShaderFile.open(vertexPath_);
+			if (!vShaderFile.is_open()) {
+				throw std::runtime_error("Failed to open vertex shader file: " + vertexPath_);
+			}
+
+			fShaderFile.open(fragmentPath_);
+			if (!fShaderFile.is_open()) {
+				throw std::runtime_error("Failed to open fragment shader file: " + fragmentPath_);
+			}
+
+			// Read file contents
+			std::stringstream vShaderStream, fShaderStream;
+			vShaderStream << vShaderFile.rdbuf();
+			fShaderStream << fShaderFile.rdbuf();
+
+			// Set shader code output
+			vertexCode = vShaderStream.str();
+			fragmentCode = fShaderStream.str();
+
+			// Close files
+			vShaderFile.close();
+			fShaderFile.close();
+		}
+		catch (const std::ifstream::failure& e) {
+			throw std::runtime_error("Shader file I/O failure: " + std::string(e.what()));
+		}
+		catch (const std::exception& e) {
+			throw std::runtime_error("Unhandled error while reading shader files: " + std::string(e.what()));
+		}
+	}
+
+	void GLShader::checkCompileErrors(unsigned int shader, std::string type)
+	{
+		int success;
+		char infoLog[1024];
+
+		// Check errors not relating to the program 
+		if (type != "PROGRAM")
+		{
+			glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+			if (!success)
+			{
+				glGetShaderInfoLog(shader, 1024, NULL, infoLog);
+				std::string errorMsg = "Shader compilation failed for shader type: " + type + "\n" + infoLog;
+				std::cerr << errorMsg << std::endl;
+				throw std::runtime_error(errorMsg);
+			}
+		}
+		//check programs that don't relate to shader compilation
+		else
+		{
+			glGetProgramiv(shader, GL_LINK_STATUS, &success);
+			if (!success)
+			{
+				glGetProgramInfoLog(shader, 1024, NULL, infoLog);
+				std::string errorMsg = "Shader program linkage failed for shader type: " + type + "\n" + infoLog;
+				std::cerr << errorMsg << std::endl;
+				throw std::runtime_error(errorMsg);
+			}
+		}
+	}
+
+};

@@ -19,8 +19,5 @@ namespace GLRenderer {
 		virtual void setBool(const std::string& name, bool value) const = 0;
 		virtual void setInt(const std::string& name, int value) const = 0;
 		virtual void setFloat(const std::string& name, float value) const = 0;
-		virtual unsigned int getID() const = 0;
-	private:
-		unsigned int ID;
 	};
 }

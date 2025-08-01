@@ -2,7 +2,7 @@
 
 namespace GLRenderer
 {
-    HelloTriangle::HelloTriangle() : isInitialized_(false), isCleaned_(false), isWireframe_(false), fragmentShader_(0), vertexShader_(0), shaderProgram_(0) {}
+    HelloTriangle::HelloTriangle() : isInitialized_(false), isCleaned_(false), isWireframe_(false), mainShader_("res/Shaders/Scenes/C1/main.vert", "res/Shaders/Scenes/C1/main.frag") {}
 
     HelloTriangle::~HelloTriangle() {
         if (!isInitialized_ || isCleaned_) return;
@@ -11,73 +11,10 @@ namespace GLRenderer
 
     void HelloTriangle::Init() {
         SetupBuffers();
-        SetupShaders();
+        mainShader_.init();
         isInitialized_ = true;
     }
 
-    void HelloTriangle::SetupShaders() {
-        SetupVertexShader();
-        SetupFragmentShader();
-        SetupShaderProgram();
-    }
-
-    void HelloTriangle::SetupVertexShader() {
-        //create vertex shader
-        vertexShader_ = glCreateShader(GL_VERTEX_SHADER);
-        //attach the shader source code to the shader object & compile vertex shader 
-        glShaderSource(vertexShader_, 1, &vertexShaderSource, NULL);
-        glCompileShader(vertexShader_);
-        //check if it compiled successfully
-        int  success;
-        char infoLog[512];
-        glGetShaderiv(vertexShader_, GL_COMPILE_STATUS, &success);
-        // If compilation failed, retrieve the error log
-        if (!success)
-        {
-            glGetShaderInfoLog(vertexShader_, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-        }
-    }
-
-    void HelloTriangle::SetupFragmentShader() {
-        // Create fragment shader
-        fragmentShader_ = glCreateShader(GL_FRAGMENT_SHADER);
-        //attach the shader source code to the shader object & compile fragment shader
-        glShaderSource(fragmentShader_, 1, &fragmentShaderSource, NULL);
-        glCompileShader(fragmentShader_);
-        //check if it compiled successfully
-        int success;
-        char infoLog[512];
-        glGetShaderiv(fragmentShader_, GL_COMPILE_STATUS, &success);
-        // If compilation failed, retrieve the error log
-        if (!success)
-        {
-            glGetShaderInfoLog(fragmentShader_, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-        }
-    }
-
-    void HelloTriangle::SetupShaderProgram() {
-        //Create shader program and link shaders to it
-        shaderProgram_ = glCreateProgram();
-        //attach shaders to the program
-        glAttachShader(shaderProgram_, vertexShader_);
-        glAttachShader(shaderProgram_, fragmentShader_);
-        glLinkProgram(shaderProgram_);
-        //check if it linked successfully
-        int success;
-        char infoLog[512];
-        glGetProgramiv(shaderProgram_, GL_LINK_STATUS, &success);
-        if (!success) {
-            glGetProgramInfoLog(shaderProgram_, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-        }
-        //use the shader program
-        glUseProgram(shaderProgram_);
-        //no longer need the shader objects, so delete them
-        glDeleteShader(vertexShader_);
-        glDeleteShader(fragmentShader_);
-    }
 
     void HelloTriangle::SetupBuffers() {
         //bind the buffers so we can modify them
@@ -111,7 +48,7 @@ namespace GLRenderer
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Set fill mode
         }
         //Render the triangle(s)
-        glUseProgram(shaderProgram_);
+        mainShader_.use();
         //bind the mesh for drawing
         meshBuffer_.Bind();
         //  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // for drawing 2 trianges with indices
