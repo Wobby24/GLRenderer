@@ -27,7 +27,7 @@ namespace GLRenderer
         isInitialized_ = true;
 
         // Initialize Scene(s)
-		helloTriangleScene_.Init();
+		texturedTriangleScene_.Init();
     }
 
     void GLRenderer::InitializeDefaults()
@@ -48,7 +48,7 @@ namespace GLRenderer
         //clear depth buffer
         glClear(GL_COLOR_BUFFER_BIT);
 
-        helloTriangleScene_.Render();
+        texturedTriangleScene_.Render();
 		//for the helloTriangle scene, we can render it directly, there really is no updates unless we need to switch wireframe, but thats not something we are doing
     }
 
@@ -58,7 +58,7 @@ namespace GLRenderer
 
         // TODO: OpenGL cleanup logic (e.g., delete buffers, shaders, etc.)
         // For example: OpenGLInitializer::Shutdown();
-		helloTriangleScene_.Cleanup();
+        texturedTriangleScene_.Cleanup();
 
         isCleanedUp_ = true;
     }

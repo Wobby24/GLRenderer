@@ -1,4 +1,6 @@
 #include <GLRenderer/OpenGL/GLMeshBuffers.hpp>
+#include <GLRenderer/Interface/Types/VertexAttribFlags.hpp>
+#include <GLRenderer/Interface/Types/VertexAttribFlagsOperators.hpp>
 #include <glad/glad.h>
 
 namespace GLRenderer {
@@ -7,12 +9,12 @@ namespace GLRenderer {
 
 	GLMeshBuffers::GLMeshBuffers() : VAO_(0), VBO_(0), EBO_(0), indexCount_(0) {}
 
-	void GLMeshBuffers::CreateAll(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, int attributes) {
+	void GLMeshBuffers::CreateAll(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, VertexAttribFlags attributes) {
 		CreateVertices(vertices, attributes);
 		CreateIndices(indices);
 	}
 
-	void GLMeshBuffers::CreateVertices(const std::vector<Vertex>& vertices, int attributes) {
+	void GLMeshBuffers::CreateVertices(const std::vector<Vertex>& vertices, VertexAttribFlags attributes) {
 		glGenVertexArrays(1, &VAO_);
 		glGenBuffers(1, &VBO_);
 
@@ -34,26 +36,26 @@ namespace GLRenderer {
 		glBindVertexArray(0);
 	}
 
-	void GLMeshBuffers::EnableAttributes(int attributes) {
-		if (attributes & POSITION) {
-			glEnableVertexAttribArray(0);
+	void GLMeshBuffers::EnableAttributes(VertexAttribFlags attributes) {
+
+		if (HasFlag(attributes, VertexAttribFlags::POSITION)) {
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+			glEnableVertexAttribArray(0);
 		}
 
-		if (attributes & COLOR) {
-			glEnableVertexAttribArray(1);
+		if (HasFlag(attributes, VertexAttribFlags::COLOR)) {
 			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+			glEnableVertexAttribArray(1);
 		}
 
-		//if (attributes )
-	/*	if (attributes & TEXCOORD) {
-			glEnableVertexAttribArray(2)
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
+		if (HasFlag(attributes, VertexAttribFlags::TEXCOORDS)) {
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+			glEnableVertexAttribArray(2);
 		}
-		if (attributes & NORMAL) {
-			glEnableVertexAttribArray(3);
-			glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-		}*/
+	//	if (attributes & NORMAL) {
+		//	glEnableVertexAttribArray(3);
+		//	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+	//	}
 	}
 
 	void GLMeshBuffers::Cleanup() {

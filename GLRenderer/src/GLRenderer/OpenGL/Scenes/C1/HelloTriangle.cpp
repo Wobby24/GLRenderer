@@ -1,4 +1,5 @@
 #include <GLRenderer/OpenGL/Scenes/C1/HelloTriangle.hpp>
+#include <GLRenderer//Interface/Types/VertexAttribFlagsOperators.hpp>
 
 namespace GLRenderer
 {
@@ -11,6 +12,7 @@ namespace GLRenderer
 
     void HelloTriangle::Init() {
         SetupBuffers();
+        //make sure to always init out shader before using it!!! an exception WILL be thrown, plus we can't really do anything with it if we haven't created our shaders internally
         mainShader_.init();
         isInitialized_ = true;
     }
@@ -20,7 +22,7 @@ namespace GLRenderer
         //bind the buffers so we can modify them
         meshBuffer_.Bind();
         //upload our data with the vert attrib 'position'
-        meshBuffer_.CreateVertices(triVerts_, GLRenderer::POSITION | GLRenderer::COLOR);
+        meshBuffer_.CreateVertices(triVerts_, GLRenderer::VertexAttribFlags::POSITION | GLRenderer::VertexAttribFlags::COLOR);
         //unbind to avoid unwanted modifications
         meshBuffer_.Unbind();
     }

@@ -5,6 +5,7 @@
 #include <GLRenderer/Interface/Types/IRendererContextDesc.hpp>
 #include <GLRenderer/OpenGL/Types/GLRenderState.hpp>
 #include <GLRenderer/OpenGL/Scenes/C1/HelloTriangle.hpp>
+#include <GLRenderer/OpenGL/Scenes/C1/TexturedTriangle.hpp>
 #include <memory>
 #include <GLRenderer/Window/Window.hpp>
 
@@ -28,6 +29,7 @@ namespace GLRenderer
         GLRendererContextDesc contextDesc_{};
 		GLRenderState state_{};
 		HelloTriangle helloTriangleScene_;
+        TexturedTriangle texturedTriangleScene_;
 
         Window::IWindow* window_ = nullptr; // Non-owning pointer
     };

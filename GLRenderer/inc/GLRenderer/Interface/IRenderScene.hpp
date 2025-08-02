@@ -1,10 +1,14 @@
 #pragma once 
 
-enum class SceneID {
+enum class SceneType {
     HelloTriangle,
-    LightingDemo,
-    TexturedQuad,
+    TexturedTriangle,
     // etc
+};
+
+struct SceneDescriptor {
+    SceneType type;
+    int id;
 };
 
 class IRenderScene {
@@ -14,5 +18,5 @@ public:
     virtual void Update(float deltaTime) = 0;
     virtual void Render() = 0;
     virtual void Cleanup() = 0;
-    virtual SceneID GetSceneID() const = 0;
+    virtual SceneDescriptor GetSceneDescriptor() const = 0;
 };
