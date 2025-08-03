@@ -78,8 +78,11 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES}) # glad.c is NOT here directly
 
 # Post-build copy: only valid after the target exists
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND cmd /c if exist "${CMAKE_SOURCE_DIR}\\GLRenderer\\res" xcopy /E /I /Y "${CMAKE_SOURCE_DIR}\\GLRenderer\\res" "$<TARGET_FILE_DIR:${PROJECT_NAME}>\\res"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/GLRenderer/res"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/res"
 )
+
 
 # Includes for the main executable
 target_include_directories(${PROJECT_NAME}
