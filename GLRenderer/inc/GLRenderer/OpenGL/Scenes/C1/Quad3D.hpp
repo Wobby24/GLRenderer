@@ -2,6 +2,7 @@
 
 #include <glad/glad.h> // or your loader
 #include <GLRenderer/OpenGL/GLTexture.hpp>
+#include <GLRenderer/Window/Interface/IWindow.hpp>
 #include <GLFW/glfw3.h>
 #include <GLRenderer/Interface/IRenderScene.hpp>
 #include <GLRenderer/Interface/Types/Vertex.hpp>
@@ -16,6 +17,7 @@ namespace GLRenderer {
 		~Quad3D() override;
 		void Init() override;
 		void Update(float deltaTime) override;
+		void onWindowResize(int newWidth, int newHeight);
 		void Render() override;
 		void Cleanup() override;
 		// Return a descriptor identifying this scene
@@ -39,8 +41,54 @@ namespace GLRenderer {
 			{ { -0.5f,  0.5f, 0.0f }, { 0.0f, 1.0f } }
 		};
 
-		//transform matrix
-		glm::mat4 trans = glm::mat4(1.0f);
+		std::vector<Vertex> cubeVertices_ = {
+	{ { -0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f } },
+	{ {  0.5f, -0.5f, -0.5f }, { 1.0f, 0.0f } },
+	{ {  0.5f,  0.5f, -0.5f }, { 1.0f, 1.0f } },
+	{ {  0.5f,  0.5f, -0.5f }, { 1.0f, 1.0f } },
+	{ { -0.5f,  0.5f, -0.5f }, { 0.0f, 1.0f } },
+	{ { -0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f } },
+
+	{ { -0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f } },
+	{ {  0.5f, -0.5f,  0.5f }, { 1.0f, 0.0f } },
+	{ {  0.5f,  0.5f,  0.5f }, { 1.0f, 1.0f } },
+	{ {  0.5f,  0.5f,  0.5f }, { 1.0f, 1.0f } },
+	{ { -0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f } },
+	{ { -0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f } },
+
+	{ { -0.5f,  0.5f,  0.5f }, { 1.0f, 0.0f } },
+	{ { -0.5f,  0.5f, -0.5f }, { 1.0f, 1.0f } },
+	{ { -0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f } },
+	{ { -0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f } },
+	{ { -0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f } },
+	{ { -0.5f,  0.5f,  0.5f }, { 1.0f, 0.0f } },
+
+	{ {  0.5f,  0.5f,  0.5f }, { 1.0f, 0.0f } },
+	{ {  0.5f,  0.5f, -0.5f }, { 1.0f, 1.0f } },
+	{ {  0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f } },
+	{ {  0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f } },
+	{ {  0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f } },
+	{ {  0.5f,  0.5f,  0.5f }, { 1.0f, 0.0f } },
+
+	{ { -0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f } },
+	{ {  0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f } },
+	{ {  0.5f, -0.5f,  0.5f }, { 1.0f, 0.0f } },
+	{ {  0.5f, -0.5f,  0.5f }, { 1.0f, 0.0f } },
+	{ { -0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f } },
+	{ { -0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f } },
+
+	{ { -0.5f,  0.5f, -0.5f }, { 0.0f, 1.0f } },
+	{ {  0.5f,  0.5f, -0.5f }, { 1.0f, 1.0f } },
+	{ {  0.5f,  0.5f,  0.5f }, { 1.0f, 0.0f } },
+	{ {  0.5f,  0.5f,  0.5f }, { 1.0f, 0.0f } },
+	{ { -0.5f,  0.5f,  0.5f }, { 0.0f, 0.0f } },
+	{ { -0.5f,  0.5f, -0.5f }, { 0.0f, 1.0f } }
+		};
+
+		//mvp matrices
+		glm::mat4 model = glm::mat4(1.0);
+		glm::mat4 view = glm::mat4(1.0);
+		glm::mat4 projection = glm::mat4(1.0);
 
 		//We can now use GLMeshBuffers for centralized mesh control
 		GLMeshBuffers meshBuffer_;
@@ -55,6 +103,11 @@ namespace GLRenderer {
 		bool isInitialized_ = false;
 		bool isCleaned_ = false;
 		bool isWireframe_ = false;
+
+		//proj matrix stuff
+		int windowWidth_ = 1280;
+		int windowHeight_ = 720;
+
 
 	};
 }

@@ -11,6 +11,7 @@ namespace GLRenderer
     void GLRenderer::Initialize(IRendererContextDesc& contextDesc, Window::IWindow& window)
     {
         InitializeDefaults();
+
         // Save pointer for later use (non-owning)
         window_ = &window;
         // Safe runtime type check
@@ -27,6 +28,15 @@ namespace GLRenderer
         }
         isInitialized_ = true;
 
+        //enable depth testing based off state
+        if (state_.depthTestEnabled) {
+            glEnable(GL_DEPTH_TEST);
+        }
+        else
+        {
+            glDisable(GL_DEPTH_TEST);
+        }
+
         // Initialize Scene(s)
 		quad3DScene_.Init();
 
@@ -38,6 +48,7 @@ namespace GLRenderer
     {
         // Set default render state
         state_.clearColor = glm::vec4(0.2f, 0.3f, 0.3f, 1.0f); // Default clear color
+        state_.depthTestEnabled = true; //most if not all scenes will need this; it can be passed to a scene if it needs changing, otherwise its on.
         // Additional defaults can be set here as needed
     }
 
@@ -52,9 +63,19 @@ namespace GLRenderer
         lastTime_ = currentTime;
 
         glClearColor(state_.clearColor.r, state_.clearColor.g, state_.clearColor.b, state_.clearColor.a);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        int width, height;
+        // 1. Get the current window size
+        window_->GetSize(width, height);
 
+        // 2. Tell the scene about the new window size
+        quad3DScene_.onWindowResize(width, height);
+
+        // 3. Update the scene with correct size info
         quad3DScene_.Update(deltaTime);
+        
+        // 4. Render
         quad3DScene_.Render();
     }
 

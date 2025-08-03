@@ -48,6 +48,71 @@ namespace GLRenderer {
 		glUniform1f(getUniformLocation(name), value);
 	}
 
+	void GLShader::setVec2(const std::string& name, const glm::vec2& value) const
+	{
+		assertInitialized();
+		glUniform2fv(getUniformLocation(name), 1, &value[0]);
+	}
+
+	void GLShader::setVec2(const std::string& name, float x, float y) const
+	{
+		assertInitialized();
+		glUniform2f(getUniformLocation(name), x, y);
+	}
+
+	// ------------------------------------------------------------------------
+
+	void GLShader::setVec3(const std::string& name, const glm::vec3& value) const
+	{
+		assertInitialized();
+		glUniform3fv(getUniformLocation(name), 1, &value[0]);
+	}
+
+	void GLShader::setVec3(const std::string& name, float x, float y, float z) const
+	{
+		assertInitialized();
+		glUniform3f(getUniformLocation(name), x, y, z);
+	}
+
+	// ------------------------------------------------------------------------
+
+	void GLShader::setVec4(const std::string& name, const glm::vec4& value) const
+	{
+		assertInitialized();
+		glUniform4fv(getUniformLocation(name), 1, &value[0]);
+	}
+
+	void GLShader::setVec4(const std::string& name, float x, float y, float z, float w) const
+	{
+		assertInitialized();
+		glUniform4f(getUniformLocation(name), x, y, z, w);
+	}
+
+	// ------------------------------------------------------------------------
+
+	void GLShader::setMat2(const std::string& name, const glm::mat2& mat) const
+	{
+		assertInitialized();
+		glUniformMatrix2fv(getUniformLocation(name), 1, GL_FALSE, &mat[0][0]);
+	}
+
+	// ------------------------------------------------------------------------
+
+	void GLShader::setMat3(const std::string& name, const glm::mat3& mat) const
+	{
+		assertInitialized();
+		glUniformMatrix3fv(getUniformLocation(name), 1, GL_FALSE, &mat[0][0]);
+	}
+
+	// ------------------------------------------------------------------------
+
+	void GLShader::setMat4(const std::string& name, const glm::mat4& mat) const
+	{
+		assertInitialized();
+		glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, &mat[0][0]);
+	}
+
+
 	//checks if gl is init
 	bool GLShader::isGLReady() const {
 		return glCreateShader != nullptr; // or check any known GL function
