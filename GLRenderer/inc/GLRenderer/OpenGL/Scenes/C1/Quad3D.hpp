@@ -1,26 +1,26 @@
 #pragma once
 
 #include <glad/glad.h> // or your loader
+#include <GLRenderer/OpenGL/GLTexture.hpp>
 #include <GLFW/glfw3.h>
 #include <GLRenderer/Interface/IRenderScene.hpp>
 #include <GLRenderer/Interface/Types/Vertex.hpp>
 #include <GLRenderer/OpenGL/GLShader.hpp>
-#include <GLRenderer/OpenGL/GLTexture.hpp>
 #include <GLRenderer/OpenGL/GLMeshBuffers.hpp>
 #include <iostream>
 
 namespace GLRenderer {
-	class TexturedTriangle : public IRenderScene {
+	class Quad3D : public IRenderScene {
 	public:
-		TexturedTriangle();
-		~TexturedTriangle() override;
+		Quad3D();
+		~Quad3D() override;
 		void Init() override;
 		void Update(float deltaTime) override;
 		void Render() override;
 		void Cleanup() override;
 		// Return a descriptor identifying this scene
 		SceneDescriptor GetSceneDescriptor() const override {
-			return SceneDescriptor{ SceneType::TexturedTriangle, 0 };
+			return SceneDescriptor{ SceneType::TexturedQuad, 0 };
 		}
 	private:
 		void SetupBuffers();
@@ -33,12 +33,14 @@ namespace GLRenderer {
 
 
 		std::vector<Vertex> vertexData_ = {
-			{ {  0.5f,  0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f } },
-			{ {  0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f } },
-			{ { -0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f } },
-			{ { -0.5f,  0.5f, 0.0f }, { 1.0f, 1.0f, 0.0f }, { 0.0f, 1.0f } }
+			{ {  0.5f,  0.5f, 0.0f }, { 1.0f, 1.0f } },
+			{ {  0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f } },
+			{ { -0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f } },
+			{ { -0.5f,  0.5f, 0.0f }, { 0.0f, 1.0f } }
 		};
 
+		//transform matrix
+		glm::mat4 trans = glm::mat4(1.0f);
 
 		//We can now use GLMeshBuffers for centralized mesh control
 		GLMeshBuffers meshBuffer_;

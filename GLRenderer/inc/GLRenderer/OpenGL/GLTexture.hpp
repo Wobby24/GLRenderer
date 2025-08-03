@@ -1,6 +1,7 @@
+#pragma once
+
 #include <GLRenderer/Interface/ITexture.hpp>
 #include <string>
-
 
 namespace GLRenderer {
     enum class GLTextureWrap : GLenum {

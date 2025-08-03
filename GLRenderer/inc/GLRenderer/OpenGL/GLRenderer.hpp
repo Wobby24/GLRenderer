@@ -5,7 +5,8 @@
 #include <GLRenderer/Interface/Types/IRendererContextDesc.hpp>
 #include <GLRenderer/OpenGL/Types/GLRenderState.hpp>
 #include <GLRenderer/OpenGL/Scenes/C1/HelloTriangle.hpp>
-#include <GLRenderer/OpenGL/Scenes/C1/TexturedTriangle.hpp>
+#include <GLRenderer/OpenGL/Scenes/C1/TexturedQuad.hpp>
+#include <GLRenderer/OpenGL/Scenes/C1/Quad3D.hpp>
 #include <memory>
 #include <GLRenderer/Window/Window.hpp>
 
@@ -26,10 +27,14 @@ namespace GLRenderer
         bool isInitialized_ = false;
         bool isCleanedUp_ = false;
 
+        float deltaTime = 0.0f;
+        double lastTime_ = 0.0;  // store time of previous frame
+
         GLRendererContextDesc contextDesc_{};
 		GLRenderState state_{};
 		HelloTriangle helloTriangleScene_;
-        TexturedTriangle texturedTriangleScene_;
+        TexturedQuad texturedTriangleScene_;
+        Quad3D quad3DScene_;
 
         Window::IWindow* window_ = nullptr; // Non-owning pointer
     };

@@ -43,13 +43,13 @@ namespace GLRenderer {
 			glEnableVertexAttribArray(0);
 		}
 
-		if (HasFlag(attributes, VertexAttribFlags::COLOR)) {
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
-			glEnableVertexAttribArray(1);
-		}
-
 		if (HasFlag(attributes, VertexAttribFlags::TEXCOORDS)) {
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+			glEnableVertexAttribArray(1);
+		} 
+
+		if (HasFlag(attributes, VertexAttribFlags::COLOR)) {
+			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
 			glEnableVertexAttribArray(2);
 		}
 	//	if (attributes & NORMAL) {

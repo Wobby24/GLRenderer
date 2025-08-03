@@ -3,6 +3,7 @@
 #include <GLRenderer/Interface/Types/IRendererContextDesc.hpp>
 #include <GLRenderer/OpenGL/Types/GLRendererContextDesc.hpp>
 #include <GLRenderer/OpenGL/Types/GLRenderState.hpp>
+#include <GLFW/glfw3.h>  // for glfwGetTime()
 #include <stdexcept>
 
 namespace GLRenderer
@@ -27,7 +28,10 @@ namespace GLRenderer
         isInitialized_ = true;
 
         // Initialize Scene(s)
-		texturedTriangleScene_.Init();
+		quad3DScene_.Init();
+
+        // Initialize lastTime_ here AFTER context creation and GLFW initialized
+        lastTime_ = glfwGetTime();
     }
 
     void GLRenderer::InitializeDefaults()
@@ -43,13 +47,15 @@ namespace GLRenderer
             throw std::runtime_error("RenderFrame called before GLRenderer was initialized.");
         }
 
-        //set RGBA clear color
+        double currentTime = glfwGetTime();
+        deltaTime = static_cast<float>(currentTime - lastTime_);
+        lastTime_ = currentTime;
+
         glClearColor(state_.clearColor.r, state_.clearColor.g, state_.clearColor.b, state_.clearColor.a);
-        //clear depth buffer
         glClear(GL_COLOR_BUFFER_BIT);
 
-        texturedTriangleScene_.Render();
-		//for the helloTriangle scene, we can render it directly, there really is no updates unless we need to switch wireframe, but thats not something we are doing
+        quad3DScene_.Update(deltaTime);
+        quad3DScene_.Render();
     }
 
     void GLRenderer::Cleanup()
@@ -58,7 +64,7 @@ namespace GLRenderer
 
         // TODO: OpenGL cleanup logic (e.g., delete buffers, shaders, etc.)
         // For example: OpenGLInitializer::Shutdown();
-        texturedTriangleScene_.Cleanup();
+        quad3DScene_.Cleanup();
 
         isCleanedUp_ = true;
     }
