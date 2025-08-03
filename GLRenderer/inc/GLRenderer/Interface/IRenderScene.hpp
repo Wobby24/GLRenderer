@@ -3,6 +3,7 @@
 enum class SceneType {
     HelloTriangle,
     TexturedQuad,
+    Quad3D,
     // etc
 };
 

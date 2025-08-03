@@ -11,9 +11,24 @@ namespace GLRenderer
     void GLRenderer::Initialize(IRendererContextDesc& contextDesc, Window::IWindow& window)
     {
         InitializeDefaults();
-
-        // Save pointer for later use (non-owning)
         window_ = &window;
+        InitializeOpenGL(contextDesc);
+        isInitialized_ = true;
+        state_.ApplyState();
+
+        InitializeScenes(); // <-- put this here instead
+        lastTime_ = glfwGetTime();
+    }
+
+    void GLRenderer::InitializeDefaults()
+    {
+        // Set default render state
+        state_.clearColor = glm::vec4(0.2f, 0.3f, 0.3f, 1.0f); // Default clear color
+        state_.depthTestEnabled = true; //most if not all scenes will need this; it can be passed to a scene if it needs changing, otherwise its on.
+        // Additional defaults can be set here as needed
+    }
+
+    void GLRenderer::InitializeOpenGL(IRendererContextDesc& contextDesc) {
         // Safe runtime type check
         auto* glContextDesc = dynamic_cast<GLRendererContextDesc*>(&contextDesc);
         if (!glContextDesc)
@@ -26,30 +41,10 @@ namespace GLRenderer
         if (!OpenGLInitializer::Initialize(*glContextDesc)) {
             throw std::runtime_error("OpenGL initialization failed.");
         }
-        isInitialized_ = true;
-
-        //enable depth testing based off state
-        if (state_.depthTestEnabled) {
-            glEnable(GL_DEPTH_TEST);
-        }
-        else
-        {
-            glDisable(GL_DEPTH_TEST);
-        }
-
-        // Initialize Scene(s)
-		quad3DScene_.Init();
-
-        // Initialize lastTime_ here AFTER context creation and GLFW initialized
-        lastTime_ = glfwGetTime();
     }
 
-    void GLRenderer::InitializeDefaults()
-    {
-        // Set default render state
-        state_.clearColor = glm::vec4(0.2f, 0.3f, 0.3f, 1.0f); // Default clear color
-        state_.depthTestEnabled = true; //most if not all scenes will need this; it can be passed to a scene if it needs changing, otherwise its on.
-        // Additional defaults can be set here as needed
+    void GLRenderer::InitializeScenes() {
+        quad3DScene_.Init(); // Temp — to be replaced by sceneManager_.InitAll();
     }
 
     void GLRenderer::RenderFrame()
@@ -58,11 +53,14 @@ namespace GLRenderer
             throw std::runtime_error("RenderFrame called before GLRenderer was initialized.");
         }
 
+        if (isCleanedUp_) {
+            throw std::runtime_error("RenderFrame called after clean-up!");
+        }
+
         double currentTime = glfwGetTime();
         deltaTime = static_cast<float>(currentTime - lastTime_);
         lastTime_ = currentTime;
 
-        glClearColor(state_.clearColor.r, state_.clearColor.g, state_.clearColor.b, state_.clearColor.a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         int width, height;
@@ -83,8 +81,6 @@ namespace GLRenderer
     {
         if (isCleanedUp_) return;
 
-        // TODO: OpenGL cleanup logic (e.g., delete buffers, shaders, etc.)
-        // For example: OpenGLInitializer::Shutdown();
         quad3DScene_.Cleanup();
 
         isCleanedUp_ = true;
