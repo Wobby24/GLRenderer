@@ -77,8 +77,6 @@ namespace GLRenderer
         deltaTime = static_cast<float>(currentTime - lastTime_);
         lastTime_ = currentTime;
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         sceneManager_.resizeCurrent(window_->GetSize().x, window_->GetSize().y);
         sceneManager_.renderCurrent();
         sceneManager_.updateCurrent(deltaTime);

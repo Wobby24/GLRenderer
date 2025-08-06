@@ -46,7 +46,6 @@ namespace GLRenderer {
     }
 
     void Quad3D::OnWindowResize(int newWidth, int newHeight) {
-        std::cout << "OnWindowResize called: " << newWidth << "x" << newHeight << std::endl;
         windowWidth_ = newWidth;
         windowHeight_ = newHeight;
         float aspectRatio = static_cast<float>(windowWidth_) / windowHeight_;
@@ -57,14 +56,17 @@ namespace GLRenderer {
     void Quad3D::Render() {
         //only render if we are initialized
         if (!isInitialized_) {
-            std::cerr << "TriangleScene not initialized!" << std::endl;
+            std::cerr << "Quad3D Scene not initialized!" << std::endl;
             return;
         }
         //only render if we haven't cleaned up yet
         if (isCleaned_) {
-            std::cerr << "TriangleScene already cleaned up!" << std::endl;
+            std::cerr << "Quad3D Scene already cleaned up!" << std::endl;
             return;
         }
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         //allow wireframe toggle
         if (isWireframe_) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Set wireframe mode

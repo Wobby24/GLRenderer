@@ -42,6 +42,9 @@ namespace GLRenderer
             std::cerr << "TriangleScene already cleaned up!" << std::endl;
             return;
         }
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         //allow wireframe toggle
         if (isWireframe_) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Set wireframe mode
