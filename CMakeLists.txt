@@ -67,7 +67,7 @@ set(PROJECT_SOURCES
     "GLRenderer/src/GLRenderer/OpenGL/Scenes/C1/TexturedQuad.cpp" 
     "GLRenderer/src/GLRenderer/OpenGL/GLTexture.cpp" 
     "GLRenderer/src/stb_image/stb_image.cpp" 
-    "GLRenderer/src/GLRenderer/OpenGL/Scenes/C1/Quad3D.cpp" "GLRenderer/src/GLRenderer/OpenGL/GLRenderState.cpp")
+    "GLRenderer/src/GLRenderer/OpenGL/Scenes/C1/Quad3D.cpp" "GLRenderer/src/GLRenderer/OpenGL/GLRenderState.cpp" "GLRenderer/src/GLRenderer/OpenGL/GLSceneManager.cpp")
 
 include(FetchContent)
 

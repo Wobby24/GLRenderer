@@ -19,6 +19,7 @@ namespace GLRenderer::Window
 		void SetTitle(const std::string& title) override;
 		void SetSize(int width, int height) override;
 		void GetSize(int& width, int& height) const override;
+		glm::ivec2 GetSize() const override;
 
 		// Return native handle for internal use or advanced scenarios
 		void* GetNativeHandle() const override { return static_cast<void*>(window_); }

@@ -73,6 +73,16 @@ namespace GLRenderer::Window
 			width = height = 0;
 	}
 
+	glm::ivec2 Window::GetSize() const {
+		if (window_) {
+			int width = 0;
+			int height = 0;
+			glfwGetWindowSize(window_, &width, &height);
+			return glm::ivec2(width, height);
+		}
+		return glm::ivec2(0, 0); // or throw, or handle error as needed
+	}
+
 	bool Window::ShouldClose() const
 	{
 		return window_ ? glfwWindowShouldClose(window_) : true;

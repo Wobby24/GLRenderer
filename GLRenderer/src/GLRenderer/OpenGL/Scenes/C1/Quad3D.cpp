@@ -24,7 +24,6 @@ namespace GLRenderer {
         mainShader_.setInt("texture1", 0);
         mainShader_.setInt("texture2", 1);
         //set matrix stuff
-        model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
         //set flag
         isInitialized_ = true;
@@ -46,7 +45,8 @@ namespace GLRenderer {
         model = glm::rotate(glm::mat4(1.0f), rotationAngle, glm::vec3(0.5f, 1.0f, 0.0f));
     }
 
-    void Quad3D::onWindowResize(int newWidth, int newHeight) {
+    void Quad3D::OnWindowResize(int newWidth, int newHeight) {
+        std::cout << "OnWindowResize called: " << newWidth << "x" << newHeight << std::endl;
         windowWidth_ = newWidth;
         windowHeight_ = newHeight;
         float aspectRatio = static_cast<float>(windowWidth_) / windowHeight_;

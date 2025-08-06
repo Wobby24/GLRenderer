@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <glm/glm.hpp>
 
 namespace GLRenderer::Window
 {
@@ -15,6 +16,7 @@ namespace GLRenderer::Window
 		virtual void SetTitle(const std::string& title) = 0;
 		virtual void SetSize(int width, int height) = 0;
 		virtual void GetSize(int& width, int& height) const = 0;
+		virtual glm::ivec2 GetSize() const = 0;
 		virtual void* GetNativeHandle() const = 0;
 	};
 }

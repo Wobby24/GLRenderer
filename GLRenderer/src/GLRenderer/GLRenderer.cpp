@@ -8,6 +8,14 @@
 
 namespace GLRenderer
 {
+
+   // GLRenderer::GLRenderer() : isInitialized_(false), isCleanedUp_(false) {}
+
+    GLRenderer::~GLRenderer() {
+        if (isCleanedUp_) return;
+        Cleanup();
+    }
+
     void GLRenderer::Initialize(IRendererContextDesc& contextDesc, Window::IWindow& window)
     {
         InitializeDefaults();
@@ -15,6 +23,7 @@ namespace GLRenderer
         InitializeOpenGL(contextDesc);
         isInitialized_ = true;
         state_.ApplyState();
+        sceneManager_.init();
 
         InitializeScenes(); // <-- put this here instead
         lastTime_ = glfwGetTime();
@@ -44,7 +53,14 @@ namespace GLRenderer
     }
 
     void GLRenderer::InitializeScenes() {
-        quad3DScene_.Init(); // Temp — to be replaced by sceneManager_.InitAll();
+        auto scene = std::make_unique<Quad3D>();
+
+        // Save the handle returned by addScene
+        SceneHandle handle = sceneManager_.addScene(std::move(scene));
+
+        // Set that handle as the current scene
+        sceneManager_.setCurrentScene(handle);
+        sceneManager_.initCurrent();
     }
 
     void GLRenderer::RenderFrame()
@@ -62,26 +78,17 @@ namespace GLRenderer
         lastTime_ = currentTime;
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        int width, height;
-        // 1. Get the current window size
-        window_->GetSize(width, height);
 
-        // 2. Tell the scene about the new window size
-        quad3DScene_.onWindowResize(width, height);
-
-        // 3. Update the scene with correct size info
-        quad3DScene_.Update(deltaTime);
-        
-        // 4. Render
-        quad3DScene_.Render();
+        sceneManager_.resizeCurrent(window_->GetSize().x, window_->GetSize().y);
+        sceneManager_.renderCurrent();
+        sceneManager_.updateCurrent(deltaTime);
     }
 
     void GLRenderer::Cleanup()
     {
         if (isCleanedUp_) return;
 
-        quad3DScene_.Cleanup();
+        sceneManager_.cleanup();
 
         isCleanedUp_ = true;
     }

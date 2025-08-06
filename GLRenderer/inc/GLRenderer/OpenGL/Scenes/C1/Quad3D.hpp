@@ -8,16 +8,17 @@
 #include <GLRenderer/Interface/Types/Vertex.hpp>
 #include <GLRenderer/OpenGL/GLShader.hpp>
 #include <GLRenderer/OpenGL/GLMeshBuffers.hpp>
+#include <GLRenderer/Interface/IResizableScene.hpp>
 #include <iostream>
 
 namespace GLRenderer {
-	class Quad3D : public IRenderScene {
+	class Quad3D : public IResizableScene {
 	public:
 		Quad3D();
 		~Quad3D() override;
 		void Init() override;
 		void Update(float deltaTime) override;
-		void onWindowResize(int newWidth, int newHeight);
+		void OnWindowResize(int newWidth, int newHeight) override;
 		void Render() override;
 		void Cleanup() override;
 		// Return a descriptor identifying this scene

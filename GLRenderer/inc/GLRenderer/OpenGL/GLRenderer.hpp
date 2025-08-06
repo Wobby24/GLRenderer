@@ -7,6 +7,7 @@
 #include <GLRenderer/OpenGL/Scenes/C1/HelloTriangle.hpp>
 #include <GLRenderer/OpenGL/Scenes/C1/TexturedQuad.hpp>
 #include <GLRenderer/OpenGL/Scenes/C1/Quad3D.hpp>
+#include <GLRenderer/OpenGL/GLSceneManager.hpp>
 #include <memory>
 #include <GLRenderer/Window/Window.hpp>
 
@@ -16,7 +17,7 @@ namespace GLRenderer
     {
     public:
         GLRenderer() = default;
-        ~GLRenderer() override = default;
+        ~GLRenderer() override;
 
         void Initialize(IRendererContextDesc& contextDesc, Window::IWindow& window) override;
         void RenderFrame() override;
@@ -34,9 +35,10 @@ namespace GLRenderer
 
         GLRendererContextDesc contextDesc_{};
 		GLRenderState state_{};
+        GLSceneManager sceneManager_;
 		HelloTriangle helloTriangleScene_;
         TexturedQuad texturedTriangleScene_;
-        Quad3D quad3DScene_;
+        std::unique_ptr<Quad3D> quad3DScene_;
 
         Window::IWindow* window_ = nullptr; // Non-owning pointer
     };
