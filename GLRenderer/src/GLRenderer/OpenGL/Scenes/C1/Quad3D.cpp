@@ -6,7 +6,7 @@
 
 
 namespace GLRenderer {
-    Quad3D::Quad3D() : isInitialized_(false), isCleaned_(false), isWireframe_(false), mainShader_("res/Shaders/Scenes/C1/3D.vert", "res/Shaders/Scenes/C1/texture.frag"), texture_("res/Textures/container.jpg"), texture2_("res/Textures/awesomeface.png"), model(glm::mat4(1.0f)), view(glm::mat4(1.0)), projection(glm::mat4(1.0)), windowWidth_(1280), windowHeight_(720) {}
+    Quad3D::Quad3D() : isInitialized_(false), isCleaned_(false), isWireframe_(false), mainShader_("res/Shaders/Scenes/C1/3D.vert", "res/Shaders/Scenes/C1/texture.frag"), texture_("res/Textures/container.jpg"), texture2_("res/Textures/awesomeface.png"),  view(glm::mat4(1.0)), projection(glm::mat4(1.0)), windowWidth_(1280), windowHeight_(720) {}
 
     Quad3D::~Quad3D() {
         if (!isInitialized_ || isCleaned_) return;
@@ -25,6 +25,8 @@ namespace GLRenderer {
         mainShader_.setInt("texture2", 1);
         //set matrix stuff
         view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+        //set cube angles
+        cubeAngles_.resize(10, 0.0f); // Start all angles at 0
         //set flag
         isInitialized_ = true;
     }
@@ -39,11 +41,11 @@ namespace GLRenderer {
     }
 
     void Quad3D::Update(float deltaTime) {
-        static float rotationAngle = 0.0f;    // static to keep value across calls
-        rotationAngle += glm::radians(50.0f) * deltaTime;
-
-        model = glm::rotate(glm::mat4(1.0f), rotationAngle, glm::vec3(0.5f, 1.0f, 0.0f));
+        for (unsigned int i = 0; i < 10; i++) {
+            cubeAngles_[i] += deltaTime * 50.0f; // Rotate over time
+        }
     }
+
 
     void Quad3D::OnWindowResize(int newWidth, int newHeight) {
         // Guard against zero sizes (minimized window)
@@ -57,14 +59,11 @@ namespace GLRenderer {
         projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
     }
 
-
     void Quad3D::Render() {
-        //only render if we are initialized
         if (!isInitialized_) {
             std::cerr << "Quad3D Scene not initialized!" << std::endl;
             return;
         }
-        //only render if we haven't cleaned up yet
         if (isCleaned_) {
             std::cerr << "Quad3D Scene already cleaned up!" << std::endl;
             return;
@@ -72,32 +71,31 @@ namespace GLRenderer {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //allow wireframe toggle
-        if (isWireframe_) {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Set wireframe mode
-        }
-        else {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Set fill mode
-        }
+        // Wireframe toggle
+        glPolygonMode(GL_FRONT_AND_BACK, isWireframe_ ? GL_LINE : GL_FILL);
 
-        //set it in the shader
         mainShader_.use();
-        mainShader_.setMat4("model", model);
         mainShader_.setMat4("view", view);
         mainShader_.setMat4("projection", projection);
 
-        /*Render the quad*/ 
-
-        //bind texture
+        // Bind textures
         texture_.bind(0);
         texture2_.bind(1);
-        // bind the mesh for drawing
+
+        // Bind mesh
         meshBuffer_.Bind();
-        // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // for drawing 2 trianges with indices
-        // draw triangle
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        // unbind
-        meshBuffer_.Unbind();
+
+        for (unsigned int i = 0; i < 10; i++) {
+            glm::mat4 model = glm::mat4(1.0f); // reset matrix per cube
+            model = glm::translate(model, cubePositions[i]);
+            model = glm::rotate(model, glm::radians(cubeAngles_[i]), glm::vec3(1.0f, 0.3f, 0.5f));
+
+            mainShader_.setMat4("model", model);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+
+
+        meshBuffer_.Unbind(); // Optional: Unbind if needed
     }
 
     void Quad3D::Cleanup() {
