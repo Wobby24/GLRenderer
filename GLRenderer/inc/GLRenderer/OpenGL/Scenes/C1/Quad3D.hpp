@@ -3,15 +3,15 @@
 #include <glad/glad.h> // or your loader
 #include <GLRenderer/OpenGL/GLTexture.hpp>
 #include <GLRenderer/Window/Interface/IWindow.hpp>
-#include <GLFW/glfw3.h>
 #include <GLRenderer/Interface/IRenderScene.hpp>
 #include <GLRenderer/Interface/Types/Vertex.hpp>
 #include <GLRenderer/OpenGL/GLShader.hpp>
 #include <GLRenderer/OpenGL/GLMeshBuffers.hpp>
 #include <GLRenderer/Interface/IResizableScene.hpp>
-#include <GLRenderer/Interface/IGUIRenderScene.hpp>
+//#include <GLRenderer/Interface/IGUIRenderScene.hpp>
 #include <GLRenderer/OpenGL/GLSceneInputHandler.hpp>
 #include <iostream>
+#include <memory>
 
 namespace GLRenderer {
 	class Quad3D : public IResizableScene {
