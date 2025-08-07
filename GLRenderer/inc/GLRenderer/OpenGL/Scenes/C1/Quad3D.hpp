@@ -9,6 +9,7 @@
 #include <GLRenderer/OpenGL/GLShader.hpp>
 #include <GLRenderer/OpenGL/GLMeshBuffers.hpp>
 #include <GLRenderer/Interface/IResizableScene.hpp>
+#include <GLRenderer/OpenGL/GLSceneInputHandler.hpp>
 #include <iostream>
 
 namespace GLRenderer {
@@ -21,10 +22,14 @@ namespace GLRenderer {
 		void OnWindowResize(int newWidth, int newHeight) override;
 		void Render() override;
 		void Cleanup() override;
+		void SetWindow(Window::IWindow& window) override;
 		// Return a descriptor identifying this scene
 		SceneDescriptor GetSceneDescriptor() const override {
-			return SceneDescriptor{ SceneType::TexturedQuad, 0 };
+			return SceneDescriptor{ SceneType::Quad3D, 0 };
 		}
+
+		// Expose input handler
+		ISceneInputHandler* GetInputHandler() { return inputHandler_.get(); }
 	private:
 		void SetupBuffers();
 
@@ -88,6 +93,10 @@ namespace GLRenderer {
 
 		std::vector<float> cubeAngles_; // Add this to your class (initialize with 10 elements)
 
+		//input handler for camera and window callbacks 
+		std::unique_ptr<GLSceneInputHandler> inputHandler_;
+		std::unique_ptr<GLCamera> camera_;
+
 		//mvp matrices
 		//glm::mat4 model = glm::mat4(1.0);
 		glm::mat4 view = glm::mat4(1.0);
@@ -101,6 +110,8 @@ namespace GLRenderer {
 		GLTexture2D texture_;
 		//2D image texture 2: electric boogaloo
 		GLTexture2D texture2_;
+		//context for camera input
+		GLCameraInputContext inputContext_;
 
 		// Initialization, cleanup, and wireframe flags
 		bool isInitialized_ = false;
@@ -111,7 +122,9 @@ namespace GLRenderer {
 		int windowWidth_ = 1280;
 		int windowHeight_ = 720;
 
-
+		void initResources();
+		void initCamera();
+		void updateMovement(float deltatime);
 	};
 }
 

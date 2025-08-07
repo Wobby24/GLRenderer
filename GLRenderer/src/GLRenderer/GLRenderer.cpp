@@ -77,6 +77,7 @@ namespace GLRenderer
         deltaTime = static_cast<float>(currentTime - lastTime_);
         lastTime_ = currentTime;
 
+        sceneManager_.setWindowToCurrent(*window_);
         sceneManager_.resizeCurrent(window_->GetSize().x, window_->GetSize().y);
         sceneManager_.renderCurrent();
         sceneManager_.updateCurrent(deltaTime);

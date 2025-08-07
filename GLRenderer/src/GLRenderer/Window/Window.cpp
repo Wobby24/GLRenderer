@@ -27,6 +27,8 @@ namespace GLRenderer::Window
 		glfwSetFramebufferSizeCallback(window_, framebuffer_size_callback);
  
 		glfwMakeContextCurrent(window_);
+		glfwSwapInterval(1);  // 0 = VSync off, 1 = VSync on
+		glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	}
 
 	void Window::processInput()
@@ -92,6 +94,8 @@ namespace GLRenderer::Window
 	{
 		if (window_)
 			glfwPollEvents();
+		if (glfwGetKey(window_, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+			glfwSetWindowShouldClose(window_, true);
 	}
 
 	void Window::SwapBuffers()

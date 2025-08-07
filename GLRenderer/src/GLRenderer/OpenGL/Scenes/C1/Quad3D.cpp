@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
+#include <memory>
 
 namespace GLRenderer {
     Quad3D::Quad3D() : isInitialized_(false), isCleaned_(false), isWireframe_(false), mainShader_("res/Shaders/Scenes/C1/3D.vert", "res/Shaders/Scenes/C1/texture.frag"), texture_("res/Textures/container.jpg"), texture2_("res/Textures/awesomeface.png"),  view(glm::mat4(1.0)), projection(glm::mat4(1.0)), windowWidth_(1280), windowHeight_(720) {}
@@ -15,6 +15,29 @@ namespace GLRenderer {
 
     void Quad3D::Init() {
         SetupBuffers();
+        initResources();
+        initCamera();
+
+        //  Set the projection matrix here (at least once!)
+        float aspectRatio = static_cast<float>(windowWidth_) / windowHeight_;
+        projection = glm::perspective(glm::radians(camera_->getAttributes().zoom), aspectRatio, 0.1f, 100.0f);
+         
+        //set flag
+        isInitialized_ = true;
+    }
+
+    void Quad3D::initCamera() {
+        camera_ = std::make_unique<GLCamera>();
+        inputContext_.camera = camera_.get();
+
+        inputHandler_ = std::make_unique<GLSceneInputHandler>(inputContext_);
+
+        auto& attrs = camera_.get()->getAttributes();
+        attrs.position = glm::vec3(0.0f, 0.0f, 3.0f);
+        attrs.targetPosition = attrs.position;  // This is key!
+    }
+
+    void Quad3D::initResources() {
         mainShader_.init();
         //load textures
         texture_.loadTexture();
@@ -23,12 +46,8 @@ namespace GLRenderer {
         mainShader_.use();
         mainShader_.setInt("texture1", 0);
         mainShader_.setInt("texture2", 1);
-        //set matrix stuff
-        view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
         //set cube angles
         cubeAngles_.resize(10, 0.0f); // Start all angles at 0
-        //set flag
-        isInitialized_ = true;
     }
 
     void Quad3D::SetupBuffers() {
@@ -40,12 +59,21 @@ namespace GLRenderer {
         meshBuffer_.Unbind();
     }
 
-    void Quad3D::Update(float deltaTime) {
-        for (unsigned int i = 0; i < 10; i++) {
-            cubeAngles_[i] += deltaTime * 50.0f; // Rotate over time
+    // Quad3D.cpp
+    void Quad3D::SetWindow(Window::IWindow& window) {
+        if (inputHandler_) {
+            GLFWwindow* native = static_cast<GLFWwindow*>(window.GetNativeHandle());
+            inputHandler_->RegisterCallbacks(native);
         }
     }
 
+
+    void Quad3D::Update(float deltaTime) {
+        camera_.get()->updatePosition(deltaTime);
+        if (inputHandler_) {
+            inputHandler_->UpdateInput(deltaTime);
+        }
+    }
 
     void Quad3D::OnWindowResize(int newWidth, int newHeight) {
         // Guard against zero sizes (minimized window)
@@ -56,7 +84,7 @@ namespace GLRenderer {
         windowWidth_ = newWidth;
         windowHeight_ = newHeight;
         float aspectRatio = static_cast<float>(windowWidth_) / windowHeight_;
-        projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
+        projection = glm::perspective(glm::radians(camera_.get()->getAttributes().zoom), aspectRatio, 0.1f, 100.0f);
     }
 
     void Quad3D::Render() {
@@ -68,6 +96,8 @@ namespace GLRenderer {
             std::cerr << "Quad3D Scene already cleaned up!" << std::endl;
             return;
         }
+
+        view = camera_.get()->getViewMatrix();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -85,15 +115,16 @@ namespace GLRenderer {
         // Bind mesh
         meshBuffer_.Bind();
 
-        for (unsigned int i = 0; i < 10; i++) {
-            glm::mat4 model = glm::mat4(1.0f); // reset matrix per cube
+        for (unsigned int i = 0; i < 10; i++)
+        {
+            glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
-            model = glm::rotate(model, glm::radians(cubeAngles_[i]), glm::vec3(1.0f, 0.3f, 0.5f));
-
+            float angle = 20.0f * i;
+            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
             mainShader_.setMat4("model", model);
+
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
-
 
         meshBuffer_.Unbind(); // Optional: Unbind if needed
     }
