@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(GLRenderer VERSION 1.0 LANGUAGES CXX C)
 cmake_policy(SET CMP0074 NEW)
+find_package(OpenGL REQUIRED)
 
 if (MSVC)
     # Remove any existing /W flags that could conflict
@@ -78,6 +79,8 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(glfw)
+
+find_package(OpenGL REQUIRED)
 
 # Executable
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES}) # glad.c is NOT here directly anymore!
