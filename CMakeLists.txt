@@ -3,22 +3,23 @@ project(GLRenderer VERSION 1.0 LANGUAGES CXX C)
 cmake_policy(SET CMP0074 NEW)
 find_package(OpenGL REQUIRED)
 
+# Set warning flags per compiler
+set(PROJECT_WARNING_FLAGS "")
+
 if (MSVC)
-    # Remove any existing /W flags that could conflict
+    # Remove existing /W flags
     string(REGEX REPLACE "/W[0-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-    add_compile_options(/W4 /WX)
+    set(PROJECT_WARNING_FLAGS "/W4 /WX")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-    # Apple Clang (macOS)
-    add_compile_options(-Wall -Wextra -Werror)
+    set(PROJECT_WARNING_FLAGS "-Wall -Wextra -Werror")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    # Other Clang (Linux or BSD)
-    add_compile_options(-Wall -Wextra -Werror)
+    set(PROJECT_WARNING_FLAGS "-Wall -Wextra -Werror")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    # GCC
-    add_compile_options(-Wall -Wextra -Werror)
+    set(PROJECT_WARNING_FLAGS "-Wall -Wextra -Werror")
 else()
     message(WARNING "Unknown compiler, warnings as errors not enabled")
 endif()
+
 
 # C++ Standard
 set(CMAKE_CXX_STANDARD 20)
@@ -84,6 +85,8 @@ find_package(OpenGL REQUIRED)
 
 # Executable
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES}) # glad.c is NOT here directly anymore!
+
+target_compile_options(${PROJECT_NAME} PRIVATE ${PROJECT_WARNING_FLAGS})
 
 # Post-build copy: only valid after the target exists
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
