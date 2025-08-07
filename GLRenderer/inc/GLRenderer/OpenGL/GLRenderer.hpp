@@ -9,7 +9,7 @@
 #include <GLRenderer/OpenGL/Scenes/C1/Quad3D.hpp>
 #include <GLRenderer/OpenGL/GLSceneManager.hpp>
 #include <memory>
-#include <GLRenderer/Window/Window.hpp>
+#include <GLRenderer/Window/Interface/IWindow.hpp>
 
 namespace GLRenderer
 {

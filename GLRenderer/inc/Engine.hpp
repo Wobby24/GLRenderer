@@ -1,6 +1,6 @@
 #include <memory>
 #include <GLRenderer/OpenGL/GLRenderer.hpp>
-#include <GLRenderer/Window/Window.hpp>
+#include <GLRenderer/Window/GLFW_Window.hpp>
 
 class Engine {
 public:
@@ -14,5 +14,5 @@ public:
 
 private:
     std::unique_ptr<GLRenderer::GLRenderer> renderer_;
-    std::unique_ptr<GLRenderer::Window::Window> window_;
+    std::unique_ptr<GLRenderer::Window::GLFW_Window> window_;
 };

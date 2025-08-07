@@ -77,10 +77,8 @@ namespace GLRenderer {
 
     void Quad3D::OnWindowResize(int newWidth, int newHeight) {
         // Guard against zero sizes (minimized window)
-        if (newWidth == 0 || newHeight == 0) {
-            // Ignore resize, or set default safe size
-            return;
-        }
+        if (newWidth == 0 || newHeight == 0) return;
+
         windowWidth_ = newWidth;
         windowHeight_ = newHeight;
         float aspectRatio = static_cast<float>(windowWidth_) / windowHeight_;

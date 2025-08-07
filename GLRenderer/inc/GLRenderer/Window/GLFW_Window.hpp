@@ -6,12 +6,24 @@
 
 namespace GLRenderer::Window
 {
-	class Window : public IWindow
+	//for fullscreen, pointer lock, and vsync
+	struct WindowState {
+		bool isFullscreen = false;
+		bool isCursorLocked = false;
+		bool vsyncEnabled = true;
+
+		int windowedWidth = 1280;
+		int windowedHeight = 720;
+		int windowedPosX = 100;
+		int windowedPosY = 100;
+	};
+
+	class GLFW_Window : public IWindow
 	{
 	public:
-		Window(int width, int height, const std::string& title,
+		GLFW_Window(int width, int height, const std::string& title,
 			int glMajorVersion = 3, int glMinorVersion = 3);
-		~Window() override;
+		~GLFW_Window() override;
 
 		void PollEvents() override;
 		void SwapBuffers() override;
@@ -20,10 +32,18 @@ namespace GLRenderer::Window
 		void SetSize(int width, int height) override;
 		void GetSize(int& width, int& height) const override;
 		glm::ivec2 GetSize() const override;
+		bool IsFullscreen() const;
+		bool IsVSyncEnabled() const;
+		bool IsPointerLocked() const;
+		void SetPosition(int x, int y);
+		void GetPosition(int& x, int& y);
+		void ToggleVSync();
+		void ToggleFullscreen();
+		void TogglePointerLock();
+		glm::ivec2 GetPosition() const;
 
 		// Return native handle for internal use or advanced scenarios
 		void* GetNativeHandle() const override { return static_cast<void*>(window_); }
-		void processInput();
 
 	private:
 		GLFWwindow* window_ = nullptr;
@@ -32,7 +52,11 @@ namespace GLRenderer::Window
 		bool shouldClose_ = false;
 		bool initialized_ = false;
 		bool isCleanedUp_ = false;
+
+		WindowState state_;
+
 		std::string title_ = "GLRenderer";
 		static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+		void HandleInternalInput();
 	};
 }

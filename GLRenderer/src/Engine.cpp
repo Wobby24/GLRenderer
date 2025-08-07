@@ -15,9 +15,13 @@ void Engine::initialize()
     ctxDesc.minorVersion = 6;
 
     // Create window with requested context version
-    window_ = std::make_unique<GLRenderer::Window::Window>(
+    window_ = std::make_unique<GLRenderer::Window::GLFW_Window>(
         ctxDesc.width, ctxDesc.height, "GLRenderer App",
         ctxDesc.majorVersion, ctxDesc.minorVersion);
+    //vsync by default is off. we can toggle it, and if needed, we can get its state. idk its not insanely clean, but its easy to use for input and isnt that much more work to do
+    window_.get()->ToggleVSync();
+    //pointer lock is also off by default, again we toggle it to enable
+    window_.get()->TogglePointerLock();
 
     // Create renderer instance
     renderer_ = std::make_unique<GLRenderer::GLRenderer>();

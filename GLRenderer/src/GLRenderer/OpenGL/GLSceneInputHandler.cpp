@@ -59,7 +59,6 @@ namespace GLRenderer {
 
     void GLSceneInputHandler::UpdateInput(float deltaTime) {
         if (!window_ || !context_.camera) return;
-        std::cout << "W Key State: " << glfwGetKey(window_, GLFW_KEY_W) << std::endl;
 
         if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS)
             context_.camera->processKeyboard(FORWARD, deltaTime);

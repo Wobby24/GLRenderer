@@ -9,6 +9,7 @@
 #include <GLRenderer/OpenGL/GLShader.hpp>
 #include <GLRenderer/OpenGL/GLMeshBuffers.hpp>
 #include <GLRenderer/Interface/IResizableScene.hpp>
+#include <GLRenderer/Interface/IGUIRenderScene.hpp>
 #include <GLRenderer/OpenGL/GLSceneInputHandler.hpp>
 #include <iostream>
 
@@ -23,6 +24,7 @@ namespace GLRenderer {
 		void Render() override;
 		void Cleanup() override;
 		void SetWindow(Window::IWindow& window) override;
+		//void RenderGUI() override;
 		// Return a descriptor identifying this scene
 		SceneDescriptor GetSceneDescriptor() const override {
 			return SceneDescriptor{ SceneType::Quad3D, 0 };
