@@ -12,7 +12,7 @@ Rasterizer that utilizes the OpenGL API developed by Khronos Group
 
 # Build Instructions
 
-- 1. **If on Linux, you must run setup.sh in order to have the required packages needed to run the project** 
+1. **If on Linux, you must run setup.sh in order to have the required packages needed to run the project** 
 - 1a. To make the script executable, run:
 ```bash
 chmod +x setup.sh
