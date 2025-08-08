@@ -8,7 +8,7 @@
 #include <GLRenderer/OpenGL/GLShader.hpp>
 #include <GLRenderer/OpenGL/GLMeshBuffers.hpp>
 #include <GLRenderer/Interface/IResizableScene.hpp>
-//#include <GLRenderer/Interface/IGUIRenderScene.hpp>
+#include <GLRenderer/Input/Interface/IInputHandler.hpp>
 #include <GLRenderer/OpenGL/GLSceneInputHandler.hpp>
 #include <iostream>
 #include <memory>
