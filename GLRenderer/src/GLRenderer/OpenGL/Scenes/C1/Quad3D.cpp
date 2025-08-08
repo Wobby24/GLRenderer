@@ -6,7 +6,7 @@
 #include <memory>
 
 namespace GLRenderer {
-    Quad3D::Quad3D() : isInitialized_(false), isCleaned_(false), isWireframe_(false), mainShader_("res/Shaders/Scenes/C1/3D.vert", "res/Shaders/Scenes/C1/texture.frag"), texture_("res/Textures/container.jpg"), texture2_("res/Textures/awesomeface.png"),  view(glm::mat4(1.0)), projection(glm::mat4(1.0)), windowWidth_(1280), windowHeight_(720) {}
+    Quad3D::Quad3D() : view(glm::mat4(1.0)), projection(glm::mat4(1.0)), mainShader_("res/Shaders/Scenes/C1/3D.vert", "res/Shaders/Scenes/C1/texture.frag"), texture_("res/Textures/container.jpg"), texture2_("res/Textures/awesomeface.png"), isInitialized_(false), isCleaned_(false), isWireframe_(false), windowWidth_(1280), windowHeight_(720) {}
 
     Quad3D::~Quad3D() {
         if (!isInitialized_ || isCleaned_) return;

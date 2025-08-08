@@ -121,6 +121,7 @@ namespace GLRenderer {
 		bool isWireframe_ = false;
 
 		//proj matrix stuff
+		//also this is just set to a compatible res, not anything specific
 		int windowWidth_ = 1280;
 		int windowHeight_ = 720;
 
