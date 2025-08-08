@@ -38,10 +38,10 @@ namespace GLRenderer {
         unsigned int getID() const { return id_;  }
 
     private:
+        std::string filePath_;
         bool isLoaded_ = false;
         bool isCleaned_ = false;
         unsigned int id_ = 0;
-        std::string filePath_;
 
         GLTextureWrap wrapS_ = GLTextureWrap::REPEAT;
         GLTextureWrap wrapT_ = GLTextureWrap::REPEAT;

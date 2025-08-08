@@ -49,13 +49,13 @@ namespace GLRenderer::Window
 		GLFWwindow* window_ = nullptr;
 		int width_ = 800;
 		int height_ = 600;
+		std::string title_;
 		bool shouldClose_ = false;
 		bool initialized_ = false;
 		bool isCleanedUp_ = false;
 
 		WindowState state_;
 
-		std::string title_ = "GLRenderer";
 		static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 		void HandleInternalInput();
 	};

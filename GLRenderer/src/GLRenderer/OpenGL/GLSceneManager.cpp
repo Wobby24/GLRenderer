@@ -6,7 +6,7 @@
 #include <iostream>
 
 namespace GLRenderer {
-    GLSceneManager::GLSceneManager() : isCleanedUp_(false), isInit_(false) {};
+    GLSceneManager::GLSceneManager() : isCleanedUp_(false), isInit_(false), allScenesCleanedUp_(false), allScenesInit_(false) {};
 
     GLSceneManager::~GLSceneManager() {
         cleanupAll();

@@ -6,7 +6,7 @@
 namespace GLRenderer::Window
 {
 	GLFW_Window::GLFW_Window(int width, int height, const std::string& title, int glMajorVersion, int glMinorVersion)
-		: width_(width), height_(height), title_(title)
+		: window_(nullptr), width_(width), height_(height), title_(title), shouldClose_(false), initialized_(false), isCleanedUp_(false)
 	{
 		if (!glfwInit())
 			throw std::runtime_error("Failed to initialize GLFW");
