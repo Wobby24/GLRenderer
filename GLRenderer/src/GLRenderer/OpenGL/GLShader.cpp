@@ -3,7 +3,7 @@
 namespace GLRenderer {
 
 	GLShader::GLShader(std::string vertexPath, std::string fragmentPath)
-		: vertexPath_(std::move(vertexPath)), fragmentPath_(std::move(fragmentPath)), id_(0), isCleanedUp_(false), isInit_(0)
+		:  isCleanedUp_(false), isInit_(0), id_(0), vertexPath_(std::move(vertexPath)), fragmentPath_(std::move(fragmentPath))
 	{}
 
 	GLShader::~GLShader() {
@@ -29,7 +29,7 @@ namespace GLRenderer {
 	//get method for the ID
 	unsigned int GLShader::getID() const { return id_; }
 
-	//* Set uniform methods *\\
+	/* Set uniform methods */
 	//bool
 	void GLShader::setBool(const std::string& name, bool value) const {
 		assertInitialized();
