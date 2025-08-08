@@ -21,7 +21,7 @@ chmod +x setup.sh
 ```bash
 chmod +x setup-linux/setup-arch.sh
 ```
--Or if you are using a Debian-based distro:
+- Or if you are using a Debian-based distro:
 ```bash
 chmod +x setup-linux/setup-debian.sh
 ```
