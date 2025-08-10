@@ -1,5 +1,7 @@
 #include <GLRenderer/OpenGL/Types/GLCameraInputContext.hpp>
 #include <GLRenderer/OpenGL/GLSceneInputHandler.hpp>
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
 #include <iostream>
 
 namespace GLRenderer {
@@ -17,6 +19,9 @@ namespace GLRenderer {
 
         // Mouse movement
         glfwSetCursorPosCallback(window_, [](GLFWwindow* win, double xpos, double ypos) {
+            //imgui
+            ImGui_ImplGlfw_CursorPosCallback(win, xpos, ypos);
+
             auto* ctx = static_cast<GLCameraInputContext*>(glfwGetWindowUserPointer(win));
             if (!ctx || !ctx->camera) return;
 
@@ -40,11 +45,38 @@ namespace GLRenderer {
 
         // Scroll wheel
         glfwSetScrollCallback(window_, [](GLFWwindow* win, double xoffset, double yoffset) {
+            //imgui callback 
+            ImGui_ImplGlfw_ScrollCallback(win, xoffset, yoffset);
+
             (void)xoffset;
             auto* ctx = static_cast<GLCameraInputContext*>(glfwGetWindowUserPointer(win));
             if (!ctx || !ctx->camera) return;
 
             ctx->camera->processMouseScroll(static_cast<float>(yoffset));
+            });
+
+        // Mouse button
+        glfwSetMouseButtonCallback(window_, [](GLFWwindow* win, int button, int action, int mods) {
+            ImGui_ImplGlfw_MouseButtonCallback(win, button, action, mods);
+
+            
+            auto* ctx = static_cast<GLCameraInputContext*>(glfwGetWindowUserPointer(win));
+            if (!ctx || !ctx->camera) return;
+             if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+                // Do something on left click
+             }
+            });
+
+        // Keyboard input
+        glfwSetKeyCallback(window_, [](GLFWwindow* win, int key, int scancode, int action, int mods) {
+            ImGui_ImplGlfw_KeyCallback(win, key, scancode, action, mods);
+
+            // Custom key event handling example:
+             auto* ctx = static_cast<GLCameraInputContext*>(glfwGetWindowUserPointer(win));
+             if (!ctx || !ctx->camera) return;
+             if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+                 // Maybe exit or toggle something
+             }
             });
     }
 
