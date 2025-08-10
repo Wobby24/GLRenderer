@@ -73,8 +73,7 @@ set(PROJECT_SOURCES
     "GLRenderer/src/GLRenderer/OpenGL/GLRenderState.cpp" 
     "GLRenderer/src/GLRenderer/OpenGL/GLSceneManager.cpp" 
     "GLRenderer/src/GLRenderer/OpenGL/GLCamera.cpp" 
-    "GLRenderer/src/GLRenderer/OpenGL/GLSceneInputHandler.cpp" 
-    "GLRenderer/src/GLRenderer/Input/GLFW_InputHandler.cpp")
+    "GLRenderer/src/GLRenderer/OpenGL/GLSceneInputHandler.cpp" )
 
 include(FetchContent)
 
