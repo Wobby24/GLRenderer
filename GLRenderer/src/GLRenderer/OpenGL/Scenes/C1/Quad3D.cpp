@@ -1,12 +1,15 @@
 #include <GLRenderer/OpenGL/Scenes/C1/Quad3D.hpp>
 #include <GLRenderer//Interface/Types/VertexAttribFlagsOperators.hpp>
+#include "imgui.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <memory>
 
 namespace GLRenderer {
-    Quad3D::Quad3D() : view(glm::mat4(1.0)), projection(glm::mat4(1.0)), mainShader_("res/Shaders/Scenes/C1/3D.vert", "res/Shaders/Scenes/C1/texture.frag"), texture_("res/Textures/container.jpg"), texture2_("res/Textures/awesomeface.png"), isInitialized_(false), isCleaned_(false), isWireframe_(false), windowWidth_(1280), windowHeight_(720) {}
+    Quad3D::Quad3D() : view(glm::mat4(1.0)), projection(glm::mat4(1.0)), mainShader_("res/Shaders/Scenes/C1/3D.vert", "res/Shaders/Scenes/C1/texture.frag"), texture_("res/Textures/container.jpg"), texture2_("res/Textures/awesomeface.png"), isInitialized_(false), isCleaned_(false), isWireframe_(false), imguiInitialized(false), windowWidth_(1280), windowHeight_(720) {}
 
     Quad3D::~Quad3D() {
         if (!isInitialized_ || isCleaned_) return;
@@ -24,6 +27,50 @@ namespace GLRenderer {
          
         //set flag
         isInitialized_ = true;
+    }
+
+    /*ImGUI*/
+
+    void Quad3D::initImGUI(GLFWwindow* window) {
+        if (imguiInitialized) {
+            // Already initialized, just return early
+            return;
+        }
+
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+        ImGui::StyleColorsDark();
+
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
+        ImGui_ImplOpenGL3_Init("#version 330 core");
+
+        imguiInitialized = true;
+    }
+
+    void Quad3D::cleanupImGUI() {
+        if (!imguiInitialized) return;
+
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+
+        imguiInitialized = false;
+    }
+
+    void Quad3D::renderImGUI() {
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        // Your ImGui UI here, for example:
+        ImGui::Begin("Example Window");
+        ImGui::Text("Hello from ImGui!");
+        ImGui::End();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 
     void Quad3D::initCamera() {
@@ -61,10 +108,11 @@ namespace GLRenderer {
 
     // Quad3D.cpp
     void Quad3D::SetWindow(Window::IWindow& window) {
+        GLFWwindow* native = static_cast<GLFWwindow*>(window.GetNativeHandle());
         if (inputHandler_) {
-            GLFWwindow* native = static_cast<GLFWwindow*>(window.GetNativeHandle());
             inputHandler_->RegisterCallbacks(native);
         }
+        initImGUI(native);  // initialize ImGui with the native handle here
     }
 
 
@@ -99,22 +147,18 @@ namespace GLRenderer {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Wireframe toggle
         glPolygonMode(GL_FRONT_AND_BACK, isWireframe_ ? GL_LINE : GL_FILL);
 
         mainShader_.use();
         mainShader_.setMat4("view", view);
         mainShader_.setMat4("projection", projection);
 
-        // Bind textures
         texture_.bind(0);
         texture2_.bind(1);
 
-        // Bind mesh
         meshBuffer_.Bind();
 
-        for (unsigned int i = 0; i < 10; i++)
-        {
+        for (unsigned int i = 0; i < 10; i++) {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
             float angle = 20.0f * i;
@@ -124,7 +168,10 @@ namespace GLRenderer {
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
-        meshBuffer_.Unbind(); // Optional: Unbind if needed
+        meshBuffer_.Unbind();
+
+        // Render ImGui UI on top
+        renderImGUI();
     }
 
     void Quad3D::Cleanup() {
@@ -132,6 +179,7 @@ namespace GLRenderer {
         meshBuffer_.Cleanup();
         texture_.cleanup();
         texture2_.cleanup();
+        cleanupImGUI();
         isCleaned_ = true;
     }
 };

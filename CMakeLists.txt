@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(GLRenderer VERSION 1.0 LANGUAGES CXX C)
 cmake_policy(SET CMP0074 NEW)
+
 find_package(OpenGL REQUIRED)
 
 # Set warning flags per compiler
@@ -20,7 +21,6 @@ else()
     message(WARNING "Unknown compiler, warnings as errors not enabled")
 endif()
 
-
 # C++ Standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -35,6 +35,7 @@ set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/GLRenderer/inc")
 set(LIB_DIR "${CMAKE_SOURCE_DIR}/GLRenderer/lib")
 set(EXTERNAL_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/GLRenderer/ext/inc")
 set(EXTERNAL_LIB_DIR "${CMAKE_SOURCE_DIR}/GLRenderer/ext/lib")
+
 if(WIN32)
     set(EXTERNAL_LIB_PLATFORM_DIR "${EXTERNAL_LIB_DIR}/windows")
 elseif(APPLE)
@@ -43,20 +44,16 @@ elseif(UNIX)
     set(EXTERNAL_LIB_PLATFORM_DIR "${EXTERNAL_LIB_DIR}/linux")
 endif()
 
-
 # ----------------------------------------------------
 # Define GLAD as an OBJECT library
 add_library(glad_objects OBJECT "${SRC_DIR}/glad/glad.c")
-
 # Set compile definitions for the GLAD object library
 set_property(TARGET glad_objects PROPERTY COMPILE_DEFINITIONS "GLAD_GL_IMPLEMENTATION")
-
 # Make sure GLAD's own header is found when compiling glad.c
 target_include_directories(glad_objects PRIVATE "${EXTERNAL_INCLUDE_DIR}")
 # ----------------------------------------------------
 
-
-# Add remaining sources to project (EXCLUDING glad.c now)
+# Add remaining sources to project (excluding glad.c now)
 set(PROJECT_SOURCES
     "${SRC_DIR}/main.cpp"
     "${SRC_DIR}/GLRenderer/GLRenderer.cpp"
@@ -73,76 +70,107 @@ set(PROJECT_SOURCES
     "GLRenderer/src/GLRenderer/OpenGL/GLRenderState.cpp" 
     "GLRenderer/src/GLRenderer/OpenGL/GLSceneManager.cpp" 
     "GLRenderer/src/GLRenderer/OpenGL/GLCamera.cpp" 
-    "GLRenderer/src/GLRenderer/OpenGL/GLSceneInputHandler.cpp" )
+    "GLRenderer/src/GLRenderer/OpenGL/GLSceneInputHandler.cpp" 
+)
 
 include(FetchContent)
 
+# Fetch GLFW
 FetchContent_Declare(
     glfw
     GIT_REPOSITORY https://github.com/glfw/glfw.git
     GIT_TAG        3.3.8  # or latest stable version
 )
-
 FetchContent_MakeAvailable(glfw)
 
-find_package(OpenGL REQUIRED)
+# Fetch ImGui
+FetchContent_Declare(
+    imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_TAG        v1.89.8 # or latest stable tag
+)
+FetchContent_MakeAvailable(imgui)
 
-# Executable
-add_executable(${PROJECT_NAME} ${PROJECT_SOURCES}) # glad.c is NOT here directly anymore!
+# ImGui core sources
+set(IMGUI_SOURCES
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/imgui_demo.cpp
+)
+
+# ImGui backend sources for GLFW + OpenGL3
+set(IMGUI_BACKENDS
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+)
+
+# Create ImGui static library
+add_library(imgui STATIC
+    ${IMGUI_SOURCES}
+    ${IMGUI_BACKENDS}
+)
+
+target_include_directories(imgui PUBLIC
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
+    ${glfw_SOURCE_DIR}/include
+    "${EXTERNAL_INCLUDE_DIR}/glad"  # Adjust if glad headers are elsewhere
+)
+
+target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLAD)
+
+target_link_libraries(imgui PUBLIC glfw OpenGL::GL glad_objects)
+
+# Create executable
+add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 
 target_compile_options(${PROJECT_NAME} PRIVATE ${PROJECT_WARNING_FLAGS})
 
-# Post-build copy: only valid after the target exists
+# Post-build copy resource folder
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_SOURCE_DIR}/GLRenderer/res"
         "$<TARGET_FILE_DIR:${PROJECT_NAME}>/res"
 )
 
-
-# Includes for the main executable
 target_include_directories(${PROJECT_NAME}
     PUBLIC 
         "${INCLUDE_DIR}"
         "${EXTERNAL_INCLUDE_DIR}"
         "${EXTERNAL_INCLUDE_DIR}/GLFW"
-        "${EXTERNAL_INCLUDE_DIR}/glad" # Still needed for your other C++ files that include glad.h
+        "${EXTERNAL_INCLUDE_DIR}/glad"
 )
 
-# Link GLAD
+# Link libraries
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         glad_objects
+        glfw
+        imgui
 )
 
 # Platform-specific linking
 if(WIN32)
-    target_link_libraries(${PROJECT_NAME}
-        PRIVATE
-            glfw
-            opengl32
-    )
+    target_link_libraries(${PROJECT_NAME} PRIVATE opengl32)
 elseif(APPLE)
-    target_link_libraries(${PROJECT_NAME}
-        PRIVATE
-            glfw
-            "-framework OpenGL"
-            "-framework Cocoa"
-            "-framework IOKit"
-            "-framework CoreVideo"
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        "-framework OpenGL"
+        "-framework Cocoa"
+        "-framework IOKit"
+        "-framework CoreVideo"
     )
 elseif(UNIX)
-    target_link_libraries(${PROJECT_NAME}
-        PRIVATE
-            glfw
-            OpenGL::GL
-            dl
-            pthread
-            X11
-            Xrandr
-            Xi
-            Xxf86vm
-            Xcursor
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        OpenGL::GL
+        dl
+        pthread
+        X11
+        Xrandr
+        Xi
+        Xxf86vm
+        Xcursor
     )
 endif()
 

@@ -8,7 +8,6 @@
 #include <GLRenderer/OpenGL/GLShader.hpp>
 #include <GLRenderer/OpenGL/GLMeshBuffers.hpp>
 #include <GLRenderer/Interface/IResizableScene.hpp>
-#include <GLRenderer/Input/Interface/IInputHandler.hpp>
 #include <GLRenderer/OpenGL/GLSceneInputHandler.hpp>
 #include <iostream>
 #include <memory>
@@ -119,6 +118,7 @@ namespace GLRenderer {
 		bool isInitialized_ = false;
 		bool isCleaned_ = false;
 		bool isWireframe_ = false;
+		bool imguiInitialized = false;
 
 		//proj matrix stuff
 		//also this is just set to a compatible res, not anything specific
@@ -128,6 +128,9 @@ namespace GLRenderer {
 		void initResources();
 		void initCamera();
 		void updateMovement(float deltatime);
+		void initImGUI(GLFWwindow* window);
+		void cleanupImGUI();
+		void renderImGUI();
 	};
 }
 
