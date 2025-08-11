@@ -130,6 +130,7 @@ namespace GLRenderer {
 		void updateMovement(float deltatime);
 		void initImGUI(GLFWwindow* window);
 		void cleanupImGUI();
+		void reloadResources();
 		void renderImGUI();
 	};
 }

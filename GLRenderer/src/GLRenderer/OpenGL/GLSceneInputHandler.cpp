@@ -22,6 +22,14 @@ namespace GLRenderer {
             //imgui
             ImGui_ImplGlfw_CursorPosCallback(win, xpos, ypos);
 
+            // Check if the mouse is locked
+            if (glfwGetInputMode(win, GLFW_CURSOR) == GLFW_CURSOR_DISABLED) {
+                // Cursor is locked, allow app to use input even if ImGui wants it
+            }
+            else if (ImGui::GetIO().WantCaptureMouse) {
+                return; // Let ImGui handle it, don't process input
+            }
+
             auto* ctx = static_cast<GLCameraInputContext*>(glfwGetWindowUserPointer(win));
             if (!ctx || !ctx->camera) return;
 
@@ -48,6 +56,11 @@ namespace GLRenderer {
             //imgui callback 
             ImGui_ImplGlfw_ScrollCallback(win, xoffset, yoffset);
 
+            if (glfwGetInputMode(win, GLFW_CURSOR) != GLFW_CURSOR_DISABLED &&
+                ImGui::GetIO().WantCaptureMouse) {
+                return;
+            }
+
             (void)xoffset;
             auto* ctx = static_cast<GLCameraInputContext*>(glfwGetWindowUserPointer(win));
             if (!ctx || !ctx->camera) return;
@@ -59,6 +72,10 @@ namespace GLRenderer {
         glfwSetMouseButtonCallback(window_, [](GLFWwindow* win, int button, int action, int mods) {
             ImGui_ImplGlfw_MouseButtonCallback(win, button, action, mods);
 
+            if (glfwGetInputMode(win, GLFW_CURSOR) != GLFW_CURSOR_DISABLED &&
+                ImGui::GetIO().WantCaptureMouse) {
+                return;
+            }
             
             auto* ctx = static_cast<GLCameraInputContext*>(glfwGetWindowUserPointer(win));
             if (!ctx || !ctx->camera) return;
@@ -70,6 +87,8 @@ namespace GLRenderer {
         // Keyboard input
         glfwSetKeyCallback(window_, [](GLFWwindow* win, int key, int scancode, int action, int mods) {
             ImGui_ImplGlfw_KeyCallback(win, key, scancode, action, mods);
+
+            if (ImGui::GetIO().WantCaptureKeyboard) return;
 
             // Custom key event handling example:
              auto* ctx = static_cast<GLCameraInputContext*>(glfwGetWindowUserPointer(win));
@@ -91,6 +110,8 @@ namespace GLRenderer {
 
     void GLSceneInputHandler::UpdateInput(float deltaTime) {
         if (!window_ || !context_.camera) return;
+
+        if (ImGui::GetIO().WantCaptureKeyboard) return;
 
         if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS)
             context_.camera->processKeyboard(FORWARD, deltaTime);

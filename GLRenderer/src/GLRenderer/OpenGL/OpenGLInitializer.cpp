@@ -3,6 +3,7 @@
 #include "GLRenderer/OpenGL/Types/GLRendererContextDesc.hpp"
 #include <stdexcept>
 #include <iostream>
+#include <GLFW/glfw3.h>
 #include <string>
 
 namespace GLRenderer {
@@ -13,7 +14,7 @@ namespace GLRenderer {
 		if (initialized)
 			return true;
 
-		if (!gladLoadGL()) {
+		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 			std::cerr << "Failed to initialize GLAD." << std::endl;
 			return false;
 		}

@@ -9,7 +9,7 @@
 #include <memory>
 
 namespace GLRenderer {
-    Quad3D::Quad3D() : view(glm::mat4(1.0)), projection(glm::mat4(1.0)), mainShader_("res/Shaders/Scenes/C1/3D.vert", "res/Shaders/Scenes/C1/texture.frag"), texture_("res/Textures/container.jpg"), texture2_("res/Textures/awesomeface.png"), isInitialized_(false), isCleaned_(false), isWireframe_(false), imguiInitialized(false), windowWidth_(1280), windowHeight_(720) {}
+    Quad3D::Quad3D() : view(glm::mat4(1.0)), projection(glm::mat4(1.0)), mainShader_("C:/Users/Sam/Downloads/Visual Studio Projects/GLRenderer/GLRenderer/res/Shaders/Scenes/C1/3D.vert", "C:/Users/Sam/Downloads/Visual Studio Projects/GLRenderer/GLRenderer/res/Shaders/Scenes/C1/texture.frag"), texture_("res/Textures/container.jpg"), texture2_("res/Textures/awesomeface.png"), isInitialized_(false), isCleaned_(false), isWireframe_(false), imguiInitialized(false), windowWidth_(1280), windowHeight_(720) {}
 
     Quad3D::~Quad3D() {
         if (!isInitialized_ || isCleaned_) return;
@@ -64,13 +64,76 @@ namespace GLRenderer {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // Your ImGui UI here, for example:
-        ImGui::Begin("Example Window");
-        ImGui::Text("Hello from ImGui!");
+        // Window flags: allow move and resize, no title bar removed so user can drag by title
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings;
+
+        // Optional: set initial position only once
+        static bool first_frame = true;
+        if (first_frame) {
+            ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Once);
+            first_frame = false;
+        }
+
+        // Style for rounded corners and semi-transparent background
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.f, 0.f, 0.f, 0.5f));  // semi-transparent black
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);                // rounded corners
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10, 10));       // padding inside window
+
+        ImGui::Begin("Stats", nullptr, window_flags);
+
+        // FPS display
+        float fps = ImGui::GetIO().Framerate;
+        ImGui::Text("FPS: %.1f", fps);
+
+        // Wireframe checkbox (assuming you have a member variable bool wireframe_)
+        ImGui::Checkbox("Wireframe", &isWireframe_);
+
+        if (ImGui::Button("Reload Shaders")) {
+            mainShader_.reload();
+            reloadResources(); // rebind textures and set uniforms after reload
+        }
+
+        ImGui::Separator();
+        ImGui::Text("Camera Settings");
+
+        // Camera Movement Speed
+        ImGui::SliderFloat("Movement Speed", &camera_.get()->getAttributes().movementSpeed, 0.1f, 100.0f);
+
+        // Mouse Sensitivity
+        ImGui::SliderFloat("Mouse Sensitivity", &camera_.get()->getAttributes().mouseSensitivity, 0.01f, 1.0f);
+
+        // Zoom level
+        ImGui::SliderFloat("Zoom", &camera_.get()->getAttributes().zoom, 1.0f, 45.0f);
+
+        ImGui::Separator();
+
+        ImGui::Text("Renderer Info");
+
+        const char* cachedRenderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+        const char* cachedVendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+        const char* cachedVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+
+        ImGui::Text("Window Size: %d x %d", windowWidth_, windowHeight_);
+        ImGui::Text("GPU Renderer: %s", cachedRenderer);
+        ImGui::Text("Vendor: %s", cachedVendor);
+        ImGui::Text("OpenGL Version: %s", cachedVersion);
+        ImGui::Separator();
+
         ImGui::End();
+
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor();
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    }
+
+    void Quad3D::reloadResources() {
+        mainShader_.use();
+        mainShader_.setInt("texture1", 0);
+        mainShader_.setInt("texture2", 1);
+        texture_.bind(0);
+        texture2_.bind(1);
     }
 
     void Quad3D::initCamera() {
