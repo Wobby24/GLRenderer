@@ -2,6 +2,29 @@
 #include <string>
 #include <stdexcept>
 #include <GLFW/glfw3.h> // Needed for GLFW calls
+#include <iostream>
+//surpress warnings for stb_image
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#elif defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wall"
+#pragma GCC diagnostic ignored "-Wextra"
+#endif
+
+#include "stb_image/stb_image.h"
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#elif defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
 
 namespace GLRenderer::Window
 {
@@ -38,6 +61,21 @@ namespace GLRenderer::Window
 		glfwDestroyWindow(window_);
 		glfwTerminate();
 		isCleanedUp_ = true;
+	}
+
+	void GLFW_Window::SetWindowIcon(const std::string& iconFilePath) {
+		stbi_set_flip_vertically_on_load(0);
+		int width, height, channels;
+		unsigned char* data = stbi_load(iconFilePath.c_str(), &width, &height, &channels, 4);
+
+		if (!data) {
+			std::cerr << "Failed to load icon from: " << iconFilePath << std::endl;
+			return;
+		}
+
+		GLFWimage icon = { width, height, data };
+		glfwSetWindowIcon(window_, 1, &icon);
+		stbi_image_free(data);
 	}
 
 	void GLFW_Window::HandleInternalInput()

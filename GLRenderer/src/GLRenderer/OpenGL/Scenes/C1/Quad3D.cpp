@@ -9,7 +9,7 @@
 #include <memory>
 
 namespace GLRenderer {
-    Quad3D::Quad3D() : view(glm::mat4(1.0)), projection(glm::mat4(1.0)), mainShader_("C:/Users/Sam/Downloads/Visual Studio Projects/GLRenderer/GLRenderer/res/Shaders/Scenes/C1/3D.vert", "C:/Users/Sam/Downloads/Visual Studio Projects/GLRenderer/GLRenderer/res/Shaders/Scenes/C1/texture.frag"), texture_("res/Textures/container.jpg"), texture2_("res/Textures/awesomeface.png"), isInitialized_(false), isCleaned_(false), isWireframe_(false), imguiInitialized(false), windowWidth_(1280), windowHeight_(720) {}
+    Quad3D::Quad3D() : view(glm::mat4(1.0)), projection(glm::mat4(1.0)), mainShader_("res/Shaders/Scenes/C1/3D.vert", "res/Shaders/Scenes/C1/texture.frag"), texture_("res/Textures/container.jpg"), texture2_("res/Textures/awesomeface.png"), isInitialized_(false), isCleaned_(false), isWireframe_(false), imguiInitialized(false), windowWidth_(1280), windowHeight_(720) {}
 
     Quad3D::~Quad3D() {
         if (!isInitialized_ || isCleaned_) return;
@@ -107,6 +107,7 @@ namespace GLRenderer {
 
         ImGui::Separator();
 
+        //Render info
         ImGui::Text("Renderer Info");
 
         const char* cachedRenderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));

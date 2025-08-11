@@ -1,4 +1,6 @@
 #include "GLRenderer/OpenGL/GLShader.hpp"
+#include <filesystem>
+#include <string>
 
 namespace GLRenderer {
 
@@ -18,6 +20,36 @@ namespace GLRenderer {
 			id_ = 0;
 		}
 		isCleanedUp_ = true;
+	}
+
+	std::string GLShader::getAbsoluteShaderPath(const std::string& path) {
+		// Relative path to source shaders folder from your executable or working directory
+		const std::filesystem::path sourceShadersRoot = "../../../../../GLRenderer/res/Shaders";
+
+		std::filesystem::path fsPath(path);
+		fsPath = std::filesystem::absolute(fsPath);  // make sure path is absolute
+
+		// Get current working directory (should be your runtime bin folder)
+		std::filesystem::path cwd = std::filesystem::current_path();
+
+		// The runtime shaders folder is typically "res/Shaders" inside cwd or its subfolders
+		std::filesystem::path runtimeShadersRoot = cwd / "res" / "Shaders";
+
+		// If the shader file is inside the runtimeShadersRoot, strip that part
+		if (std::mismatch(runtimeShadersRoot.begin(), runtimeShadersRoot.end(), fsPath.begin()).first == runtimeShadersRoot.end()) {
+			// fsPath starts with runtimeShadersRoot
+
+			// Get relative path inside res/Shaders
+			std::filesystem::path relativeShaderPath = std::filesystem::relative(fsPath, runtimeShadersRoot);
+
+			// Build source shader absolute path
+			std::filesystem::path sourceShaderPath = std::filesystem::absolute(sourceShadersRoot / relativeShaderPath);
+
+			return sourceShaderPath.string();
+		}
+
+		// If path is not inside runtimeShadersRoot, just return absolute path
+		return fsPath.string();
 	}
 
 	//use program method
@@ -137,19 +169,18 @@ namespace GLRenderer {
 	//Create Shaders
 	void GLShader::createShaders() {
 		//1. retrieve the vertex/fragment source code from the file path
-		std::string vertexCode, fragmentCode;
-		std::ifstream vShaderFile, fShaderFile;
-
-		//ensure ifstream objects are able to throw exceptions:
-		vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-		fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+		std::string vertexCode_, fragmentCode_;
 
 		//function will handle file io for teh ifstreams and then put them into our vertex code and fragment code
+		std::string absVertPath = getAbsoluteShaderPath(vertexPath_);
+		std::string absFragPath = getAbsoluteShaderPath(fragmentPath_);
 
-		handleFileIO(vShaderFile, fShaderFile, vertexCode, fragmentCode);
+		handleFileIO(absVertPath, absFragPath, vertexCode_, fragmentCode_);
 
-		const char* vShaderCode = vertexCode.c_str();
-		const char* fShaderCode = fragmentCode.c_str();
+		std::cout << absVertPath << absFragPath << "\n";
+
+		const char* vShaderCode = vertexCode_.c_str();
+		const char* fShaderCode = fragmentCode_.c_str();
 
 		//2. Compile and link the shaders
 		unsigned int vertex, fragment;
@@ -204,32 +235,25 @@ namespace GLRenderer {
 		return location;
 	}
 
-	void GLShader::handleFileIO(std::ifstream& vShaderFile, std::ifstream& fShaderFile,
+	void GLShader::handleFileIO(const std::string& vertexPath, const std::string& fragmentPath,
 		std::string& vertexCode, std::string& fragmentCode) {
 		try {
-			// Open files
-			vShaderFile.open(vertexPath_);
+			std::ifstream vShaderFile(vertexPath);
 			if (!vShaderFile.is_open()) {
-				throw std::runtime_error("Failed to open vertex shader file: " + vertexPath_);
+				throw std::runtime_error("Failed to open vertex shader file: " + vertexPath);
 			}
 
-			fShaderFile.open(fragmentPath_);
+			std::ifstream fShaderFile(fragmentPath);
 			if (!fShaderFile.is_open()) {
-				throw std::runtime_error("Failed to open fragment shader file: " + fragmentPath_);
+				throw std::runtime_error("Failed to open fragment shader file: " + fragmentPath);
 			}
 
-			// Read file contents
 			std::stringstream vShaderStream, fShaderStream;
 			vShaderStream << vShaderFile.rdbuf();
 			fShaderStream << fShaderFile.rdbuf();
 
-			// Set shader code output
 			vertexCode = vShaderStream.str();
 			fragmentCode = fShaderStream.str();
-
-			// Close files
-			vShaderFile.close();
-			fShaderFile.close();
 		}
 		catch (const std::ifstream::failure& e) {
 			throw std::runtime_error("Shader file I/O failure: " + std::string(e.what()));

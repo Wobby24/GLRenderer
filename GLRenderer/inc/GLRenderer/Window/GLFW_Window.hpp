@@ -40,6 +40,7 @@ namespace GLRenderer::Window
 		void ToggleVSync();
 		void ToggleFullscreen();
 		void TogglePointerLock();
+		void SetWindowIcon(const std::string& iconFilePath);
 		glm::ivec2 GetPosition() const;
 
 		// Return native handle for internal use or advanced scenarios

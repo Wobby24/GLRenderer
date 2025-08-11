@@ -1,0 +1,5 @@
+#include "resource.h"
+
+LANGUAGE 0x09, 0x01  // English (United States)
+
+IDI_ICON1 ICON "Resources/Other/ICON.ico"

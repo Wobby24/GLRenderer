@@ -43,7 +43,9 @@ namespace GLRenderer {
 		bool isGLReady() const;
 		void checkCompileErrors(unsigned int shader, std::string type);
 		void createShaders();
-		void handleFileIO(std::ifstream& vShaderFile, std::ifstream& fShaderFile, std::string& vertexCode, std::string& fragmentCode);
+		void handleFileIO(const std::string& vertexPath, const std::string& fragmentPath,
+			std::string& vertexCode, std::string& fragmentCode);
+		std::string getAbsoluteShaderPath(const std::string& relativePath);
 		void cleanup();
 	};
 }

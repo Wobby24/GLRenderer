@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
+cmake_policy(VERSION 3.31)
 project(GLRenderer VERSION 1.0 LANGUAGES CXX C)
 cmake_policy(SET CMP0074 NEW)
 
@@ -126,14 +127,32 @@ target_link_libraries(imgui PUBLIC glfw OpenGL::GL glad_objects)
 # Create executable
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 
-target_compile_options(${PROJECT_NAME} PRIVATE ${PROJECT_WARNING_FLAGS})
+set(RUNTIME_OUTPUT_DIR "${CMAKE_BINARY_DIR}/bin/$<CONFIG>")
 
-# Post-build copy resource folder
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${RUNTIME_OUTPUT_DIR}"
+)
+
+set(RESOURCE_OUTPUT_DIR "${RUNTIME_OUTPUT_DIR}/res")
+
+set(RESOURCE_TIMESTAMP "${RESOURCE_OUTPUT_DIR}/res_copied.timestamp")
+
+add_custom_command(
+    OUTPUT "${RESOURCE_TIMESTAMP}"
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_SOURCE_DIR}/GLRenderer/res"
-        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/res"
+        "${RESOURCE_OUTPUT_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E touch "${RESOURCE_TIMESTAMP}"
+    COMMENT "Copying resources folder next to executable"
 )
+
+add_custom_target(CopyResources ALL
+    DEPENDS "${RESOURCE_TIMESTAMP}"
+)
+
+add_dependencies(${PROJECT_NAME} CopyResources)
+
+target_compile_options(${PROJECT_NAME} PRIVATE ${PROJECT_WARNING_FLAGS})
 
 target_include_directories(${PROJECT_NAME}
     PUBLIC 

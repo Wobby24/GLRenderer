@@ -14,7 +14,7 @@ void Engine::initialize()
     ctxDesc.majorVersion = 4;  // specify your desired OpenGL version
     ctxDesc.minorVersion = 6;
 
-    // Create window with requested context version
+    // Create window with requested context version 
     window_ = std::make_unique<GLRenderer::Window::GLFW_Window>(
         ctxDesc.width, ctxDesc.height, "GLRenderer App",
         ctxDesc.majorVersion, ctxDesc.minorVersion);
@@ -22,6 +22,8 @@ void Engine::initialize()
     window_.get()->ToggleVSync();
     //pointer lock is also off by default, again we toggle it to enable
     window_.get()->TogglePointerLock();
+    //set window icon
+    window_.get()->SetWindowIcon("res/Other/ICON.png");
 
     // Create renderer instance
     renderer_ = std::make_unique<GLRenderer::GLRenderer>();
