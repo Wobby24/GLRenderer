@@ -177,8 +177,6 @@ namespace GLRenderer {
 
 		handleFileIO(absVertPath, absFragPath, vertexCode_, fragmentCode_);
 
-		std::cout << absVertPath << absFragPath << "\n";
-
 		const char* vShaderCode = vertexCode_.c_str();
 		const char* fShaderCode = fragmentCode_.c_str();
 

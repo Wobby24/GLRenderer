@@ -6,6 +6,6 @@ namespace GLRenderer {
         NONE = 0,
         POSITION = 1 << 0,
         TEXCOORDS = 1 << 1,
-        COLOR = 1 << 2,
+        NORMAL = 1 << 2,
     };
 }

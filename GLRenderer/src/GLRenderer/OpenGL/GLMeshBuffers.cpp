@@ -39,23 +39,19 @@ namespace GLRenderer {
 	void GLMeshBuffers::EnableAttributes(VertexAttribFlags attributes) {
 
 		if (HasFlag(attributes, VertexAttribFlags::POSITION)) {
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Vertex::position));
 			glEnableVertexAttribArray(0);
 		}
 
 		if (HasFlag(attributes, VertexAttribFlags::TEXCOORDS)) {
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Vertex::texCoords));
 			glEnableVertexAttribArray(1);
 		} 
 
-		if (HasFlag(attributes, VertexAttribFlags::COLOR)) {
-			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+		if (HasFlag(attributes, VertexAttribFlags::NORMAL)) {
+			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Vertex::normal));
 			glEnableVertexAttribArray(2);
 		}
-	//	if (attributes & NORMAL) {
-		//	glEnableVertexAttribArray(3);
-		//	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-	//	}
 	}
 
 	void GLMeshBuffers::Cleanup() {

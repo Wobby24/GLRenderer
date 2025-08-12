@@ -8,8 +8,9 @@
 #include <GLRenderer/OpenGL/Scenes/C1/TexturedQuad.hpp>
 #include <GLRenderer/OpenGL/Scenes/C1/Quad3D.hpp>
 #include <GLRenderer/OpenGL/GLSceneManager.hpp>
-#include <memory>
 #include <GLRenderer/Window/Interface/IWindow.hpp>
+#include <GLRenderer/OpenGL/Scenes/C2/LightingCubes.hpp>
+#include <memory>
 
 namespace GLRenderer
 {
@@ -38,6 +39,7 @@ namespace GLRenderer
         GLSceneManager sceneManager_;
 		HelloTriangle helloTriangleScene_;
         TexturedQuad texturedTriangleScene_;
+        std::unique_ptr<LightingCubes>  lightCubes_;
         std::unique_ptr<Quad3D> quad3DScene_;
 
         Window::IWindow* window_ = nullptr; // Non-owning pointer

@@ -27,7 +27,7 @@ namespace GLRenderer {
         //bind the buffers so we can modify them
         meshBuffer_.Bind();
         //upload our data with the vert attrib 'position'
-        meshBuffer_.CreateAll(vertexData_, vIndices_, GLRenderer::VertexAttribFlags::POSITION | GLRenderer::VertexAttribFlags::COLOR | GLRenderer::VertexAttribFlags::TEXCOORDS);
+        meshBuffer_.CreateAll(vertexData_, vIndices_, GLRenderer::VertexAttribFlags::POSITION | GLRenderer::VertexAttribFlags::TEXCOORDS);
         //unbind to avoid unwanted modifications
         meshBuffer_.Unbind();
     }

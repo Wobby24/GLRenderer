@@ -17,6 +17,10 @@ namespace GLRenderer {
         window_ = window;
         glfwSetWindowUserPointer(window_, &context_);
 
+        // --- REQUIRED FOR IMGUI TEXT INPUT ---
+        glfwSetCharCallback(window_, ImGui_ImplGlfw_CharCallback);
+
+
         // Mouse movement
         glfwSetCursorPosCallback(window_, [](GLFWwindow* win, double xpos, double ypos) {
             //imgui

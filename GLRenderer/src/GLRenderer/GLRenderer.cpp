@@ -32,7 +32,7 @@ namespace GLRenderer
     void GLRenderer::InitializeDefaults()
     {
         // Set default render state
-        state_.clearColor = glm::vec4(0.2f, 0.3f, 0.3f, 1.0f); // Default clear color
+        state_.clearColor = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f); // Default clear color
         state_.depthTestEnabled = true; //most if not all scenes will need this; it can be passed to a scene if it needs changing, otherwise its on.
         // Additional defaults can be set here as needed
     }
@@ -53,7 +53,7 @@ namespace GLRenderer
     }
 
     void GLRenderer::InitializeScenes() {
-        auto scene = std::make_unique<Quad3D>();
+        auto scene = std::make_unique<LightingCubes>();
 
         // Save the handle returned by addScene
         SceneHandle handle = sceneManager_.addScene(std::move(scene));

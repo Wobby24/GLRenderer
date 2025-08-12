@@ -38,9 +38,9 @@ namespace GLRenderer {
 
         // Vertices using your Vertex struct (for colored triangle example)
         std::vector<Vertex> triVerts_ = {
-            {{-0.5f, -0.5f, 0.0f}, { 1.0f, 0.0f, 0.0f }},
-            {{ 0.5f, -0.5f, 0.0f}, { 0.0f, 1.0f, 0.0f }},
-            {{ 0.0f,  0.5f, 0.0f}, { 0.0f, 0.0f, 1.0f }}
+            { {-0.5f, -0.5f, 0.0f } },
+            { { 0.5f, -0.5f, 0.0f } },
+            { { 0.0f,  0.5f, 0.0f } }
         };
 
         GLMeshBuffers meshBuffer_;

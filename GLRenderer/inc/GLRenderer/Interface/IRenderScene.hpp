@@ -5,6 +5,7 @@ namespace GLRenderer {
         HelloTriangle,
         TexturedQuad,
         Quad3D,
+        LightingCubes,
         // etc
     };
 

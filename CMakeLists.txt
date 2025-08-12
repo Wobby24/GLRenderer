@@ -72,7 +72,7 @@ set(PROJECT_SOURCES
     "GLRenderer/src/GLRenderer/OpenGL/GLSceneManager.cpp" 
     "GLRenderer/src/GLRenderer/OpenGL/GLCamera.cpp" 
     "GLRenderer/src/GLRenderer/OpenGL/GLSceneInputHandler.cpp" 
-)
+ "GLRenderer/src/GLRenderer/OpenGL/Scenes/C2/LightingCubes.cpp")
 
 include(FetchContent)
 
