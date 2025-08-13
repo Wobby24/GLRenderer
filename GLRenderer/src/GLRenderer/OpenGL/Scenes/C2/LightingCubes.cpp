@@ -18,8 +18,6 @@ namespace GLRenderer {
         initResources();
         initCamera();
 
-        glDisable(GL_CULL_FACE);
-
         //  Set the projection matrix here (at least once!)
         float aspectRatio = static_cast<float>(windowWidth_) / windowHeight_;
         projection_ = glm::perspective(glm::radians(camera_->getAttributes().zoom), aspectRatio, 0.1f, 100.0f);

@@ -1,3 +1,16 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
+#ifdef _WIN32
+#include <windows.h>
+#elif __APPLE__
+#include <mach-o/dyld.h>
+#elif __linux__
+#include <unistd.h>
+#endif
+
+
 #include "GLRenderer/OpenGL/GLShader.hpp"
 #include <filesystem>
 #include <string>
@@ -22,35 +35,61 @@ namespace GLRenderer {
 		isCleanedUp_ = true;
 	}
 
+	std::filesystem::path getExecutableDir() {
+#ifdef _WIN32
+		char buffer[MAX_PATH];
+		GetModuleFileNameA(NULL, buffer, MAX_PATH);
+		return std::filesystem::path(buffer).parent_path();
+
+#elif __APPLE__
+		char buffer[1024];
+		uint32_t size = sizeof(buffer);
+		if (_NSGetExecutablePath(buffer, &size) == 0) {
+			return std::filesystem::path(buffer).parent_path();
+		}
+		return {}; // Failed
+
+#elif __linux__
+		char buffer[1024];
+		ssize_t count = readlink("/proc/self/exe", buffer, sizeof(buffer));
+		if (count != -1) {
+			return std::filesystem::path(std::string(buffer, count)).parent_path();
+		}
+		return {}; // Failed
+
+#else
+		return {}; // Unsupported platform
+#endif
+	}
+
 	std::string GLShader::getAbsoluteShaderPath(const std::string& path) {
-		// Relative path to source shaders folder from your executable or working directory
-		const std::filesystem::path sourceShadersRoot = "../../../../../GLRenderer/res/Shaders";
+		// Step 1: Get the directory of the current executable
+		std::filesystem::path exeDir = getExecutableDir();
 
-		std::filesystem::path fsPath(path);
-		fsPath = std::filesystem::absolute(fsPath);  // make sure path is absolute
+		// Step 2: Define the path to the shader source folder (relative to executable)
+		std::filesystem::path sourceShadersRoot = exeDir / "../../../../../GLRenderer/res/Shaders";
+		sourceShadersRoot = sourceShadersRoot.lexically_normal();
 
-		// Get current working directory (should be your runtime bin folder)
-		std::filesystem::path cwd = std::filesystem::current_path();
+		// Step 3: Take the path passed in (e.g., "res/Shaders/Scenes/C2/lighting.vert")
+		// and remove "res/Shaders/" from the start so we get "Scenes/C2/lighting.vert"
+		std::filesystem::path inputPath = path;
+		std::filesystem::path baseRel = "res/Shaders";
 
-		// The runtime shaders folder is typically "res/Shaders" inside cwd or its subfolders
-		std::filesystem::path runtimeShadersRoot = cwd / "res" / "Shaders";
-
-		// If the shader file is inside the runtimeShadersRoot, strip that part
-		if (std::mismatch(runtimeShadersRoot.begin(), runtimeShadersRoot.end(), fsPath.begin()).first == runtimeShadersRoot.end()) {
-			// fsPath starts with runtimeShadersRoot
-
-			// Get relative path inside res/Shaders
-			std::filesystem::path relativeShaderPath = std::filesystem::relative(fsPath, runtimeShadersRoot);
-
-			// Build source shader absolute path
-			std::filesystem::path sourceShaderPath = std::filesystem::absolute(sourceShadersRoot / relativeShaderPath);
-
-			return sourceShaderPath.string();
+		std::filesystem::path relativePath;
+		if (inputPath.string().find(baseRel.string()) != std::string::npos) {
+			relativePath = std::filesystem::relative(inputPath, baseRel);
+		}
+		else {
+			relativePath = inputPath;  // fallback if base doesn't match
 		}
 
-		// If path is not inside runtimeShadersRoot, just return absolute path
-		return fsPath.string();
+		// Step 4: Construct the final path
+		std::filesystem::path fullShaderPath = sourceShadersRoot / relativePath;
+		fullShaderPath = fullShaderPath.lexically_normal();
+
+		return fullShaderPath.string();
 	}
+
 
 	//use program method
 	void GLShader::use() const { 
