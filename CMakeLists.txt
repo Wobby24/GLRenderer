@@ -76,6 +76,19 @@ set(PROJECT_SOURCES
 
 include(FetchContent)
 
+# Disable building GLFW examples, tests, and docs
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Build GLFW example programs" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "Build GLFW test programs" FORCE)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "Build GLFW documentation" FORCE)
+
+FetchContent_Declare(
+    glfw
+    GIT_REPOSITORY https://github.com/glfw/glfw.git
+    GIT_TAG        3.3.8  # or latest stable version
+)
+FetchContent_MakeAvailable(glfw)
+
+
 # Fetch GLFW
 FetchContent_Declare(
     glfw
