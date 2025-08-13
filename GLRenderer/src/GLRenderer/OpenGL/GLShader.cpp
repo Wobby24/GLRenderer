@@ -67,7 +67,7 @@ namespace GLRenderer {
 		std::filesystem::path exeDir = getExecutableDir();
 
 		// Step 2: Define the path to the shader source folder (relative to executable)
-		std::filesystem::path sourceShadersRoot = exeDir / "../../../../../GLRenderer/res/Shaders";
+		std::filesystem::path sourceShadersRoot = exeDir / "../../../../../GLRenderer/GLRenderer/res/Shaders";
 		sourceShadersRoot = sourceShadersRoot.lexically_normal();
 
 		// Step 3: Take the path passed in (e.g., "res/Shaders/Scenes/C2/lighting.vert")
