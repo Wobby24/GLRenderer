@@ -63,31 +63,48 @@ namespace GLRenderer {
 	}
 
 	std::string GLShader::getAbsoluteShaderPath(const std::string& path) {
-		// Step 1: Get the directory of the current executable
-		std::filesystem::path exeDir = getExecutableDir();
+		auto exeDir = getExecutableDir();
 
-		// Step 2: Define the path to the shader source folder (relative to executable)
-		std::filesystem::path sourceShadersRoot = exeDir / "../../../../../GLRenderer/GLRenderer/res/Shaders";
-		sourceShadersRoot = sourceShadersRoot.lexically_normal();
+		// Search upwards up to 5 levels for GLRenderer/res/Shaders
+		std::filesystem::path shaderRoot;
 
-		// Step 3: Take the path passed in (e.g., "res/Shaders/Scenes/C2/lighting.vert")
-		// and remove "res/Shaders/" from the start so we get "Scenes/C2/lighting.vert"
-		std::filesystem::path inputPath = path;
+		std::filesystem::path searchDir = exeDir;
+		bool found = false;
+
+		for (int i = 0; i < 6; ++i) {
+			auto candidate = searchDir / "GLRenderer" / "res" / "Shaders";
+			if (std::filesystem::exists(candidate)) {
+				shaderRoot = candidate;
+				found = true;
+				break;
+			}
+			searchDir = searchDir.parent_path();
+			if (searchDir == searchDir.root_path()) break;
+		}
+
+		if (!found) {
+			throw std::runtime_error("Could not locate GLRenderer/res/Shaders folder relative to executable");
+		}
+
+		// Now append relative path (remove the "res/Shaders" prefix if present)
+		std::filesystem::path inputPath(path);
 		std::filesystem::path baseRel = "res/Shaders";
 
 		std::filesystem::path relativePath;
+
 		if (inputPath.string().find(baseRel.string()) != std::string::npos) {
 			relativePath = std::filesystem::relative(inputPath, baseRel);
 		}
 		else {
-			relativePath = inputPath;  // fallback if base doesn't match
+			relativePath = inputPath;
 		}
 
-		// Step 4: Construct the final path
-		std::filesystem::path fullShaderPath = sourceShadersRoot / relativePath;
-		fullShaderPath = fullShaderPath.lexically_normal();
+		auto fullPath = shaderRoot / relativePath;
+		fullPath = fullPath.lexically_normal();
 
-		return fullShaderPath.string();
+	//	std::cout << "[GLShader] Resolved shader path: " << fullPath << std::endl;
+
+		return fullPath.string();
 	}
 
 
