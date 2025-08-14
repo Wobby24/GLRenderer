@@ -6,7 +6,7 @@
 
 namespace GLRenderer {
 
-	LightingCubes::LightingCubes() : view_(glm::mat4(1.0)), projection_(glm::mat4(1.0)), lightPos_(glm::vec3(1.2f, 1.0f, 2.0f)), lightColor_(glm::vec3(1.0f, 1.0f, 1.0f)), lightingShader_("res/Shaders/Scenes/C2/lighting.vert", "res/Shaders/Scenes/C2/lighting.frag"), lightSourceShader_("res/Shaders/Scenes/C2/lightSource.vert", "res/Shaders/Scenes/C2/lightSource.frag"), copper_("res/Textures/copper.png"), isInitialized_(false), isCleaned_(false), isWireframe_(false), imguiInitialized_(false), windowWidth_(1280), windowHeight_(720) {}
+	LightingCubes::LightingCubes() : view_(glm::mat4(1.0)), projection_(glm::mat4(1.0)), lightPos_(glm::vec3(1.2f, 1.0f, 2.0f)), lightColor_(glm::vec3(1.0f, 1.0f, 1.0f)), lightingShader_("res/Shaders/Scenes/C2/lighting.vert", "res/Shaders/Scenes/C2/lighting.frag"), lightSourceShader_("res/Shaders/Scenes/C2/lightSource.vert", "res/Shaders/Scenes/C2/lightSource.frag"), copper_("res/Textures/copper.png"), isInitialized_(false), isCleaned_(false), isWireframe_(false), imguiInitialized_(false), isPointerLocked_(true), windowWidth_(1280), windowHeight_(720) {}
 
 	LightingCubes::~LightingCubes() {
 		if (!isInitialized_ || isCleaned_) return;
@@ -78,6 +78,24 @@ namespace GLRenderer {
         ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
         ImGui::Spacing();
 
+        if (isPointerLocked_) {
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Pointer Locked");
+        }
+        else {
+            ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Pointer Not Locked");
+        }
+
+        //explain 
+
+        ImGui::SameLine();
+        ImGui::TextDisabled("(?)");
+        if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip();
+            ImGui::Text("Pointer Lock hides and confines the cursor to the window.\n"
+                "It's commonly used in 3D apps for camera control.");
+            ImGui::EndTooltip();
+        }
+
         // Wireframe toggle
         ImGui::Checkbox("Wireframe Mode", &isWireframe_);
 
@@ -106,6 +124,7 @@ namespace GLRenderer {
         ImGui::ColorEdit3("Material Diffuse", &copperMat_.getDiffuse()[0], ImGuiColorEditFlags_DisplayRGB);
         ImGui::ColorEdit3("Material Specular", &copperMat_.getSpecular()[0], ImGuiColorEditFlags_DisplayRGB);
         ImGui::SliderFloat("Material Shininess", &copperMat_.getShininess(), 1.0f, 256.0f);
+
 
         ImGui::Separator();
         ImGui::Text("Renderer Info");
@@ -178,6 +197,7 @@ namespace GLRenderer {
 
    void LightingCubes::SetWindow(Window::IWindow& window) {
        GLFWwindow* native = static_cast<GLFWwindow*>(window.GetNativeHandle());
+       isPointerLocked_ = glfwGetInputMode(native, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
        if (inputHandler_) {
            inputHandler_->RegisterCallbacks(native);
        }
@@ -222,8 +242,6 @@ namespace GLRenderer {
        lightingShader_.setMat4("view", view_);
        lightingShader_.setMat4("projection", projection_);
         
-       lightingShader_.setVec3("lightPos", lightPos_);
-       lightingShader_.setVec3("lightColor", lightColor_);
        lightingShader_.setVec3("viewPos", camera_.get()->getAttributes().position);
 
        // world transformation

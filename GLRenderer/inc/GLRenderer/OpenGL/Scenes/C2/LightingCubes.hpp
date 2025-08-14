@@ -202,6 +202,7 @@ namespace GLRenderer {
 		bool isCleaned_ = false;
 		bool isWireframe_ = false;
 		bool imguiInitialized_ = false;
+		bool isPointerLocked_ = true;
 
 		//proj matrix stuff
 		//also this is just set to a compatible res, not anything specific
