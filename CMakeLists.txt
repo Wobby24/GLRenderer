@@ -8,6 +8,34 @@ find_package(OpenGL REQUIRED)
 # Set warning flags per compiler
 set(PROJECT_WARNING_FLAGS "")
 
+# Multi-config support for Visual Studio, Xcode, else single-config default to Debug
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
+endif()
+
+if(CMAKE_GENERATOR MATCHES "Visual Studio" OR CMAKE_GENERATOR MATCHES "Xcode")
+    set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Configs" FORCE)
+endif()
+
+# Compiler flags per configuration
+foreach(OUTPUTCONFIG IN ITEMS Debug Release)
+    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG_UPPER)
+    if (MSVC)
+        if(${OUTPUTCONFIG_UPPER} STREQUAL "DEBUG")
+            set(CMAKE_CXX_FLAGS_DEBUG "/W4 /WX /Zi /Od")
+        elseif(${OUTPUTCONFIG_UPPER} STREQUAL "RELEASE")
+            set(CMAKE_CXX_FLAGS_RELEASE "/W4 /WX /O2")
+        endif()
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang|GNU")
+        if(${OUTPUTCONFIG_UPPER} STREQUAL "DEBUG")
+            set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wextra -Werror -g -O0")
+        elseif(${OUTPUTCONFIG_UPPER} STREQUAL "RELEASE")
+            set(CMAKE_CXX_FLAGS_RELEASE "-Wall -Wextra -Werror -O3")
+        endif()
+    endif()
+endforeach()
+
+
 if (MSVC)
     # Remove existing /W flags
     string(REGEX REPLACE "/W[0-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
@@ -72,7 +100,7 @@ set(PROJECT_SOURCES
     "GLRenderer/src/GLRenderer/OpenGL/GLSceneManager.cpp" 
     "GLRenderer/src/GLRenderer/OpenGL/GLCamera.cpp" 
     "GLRenderer/src/GLRenderer/OpenGL/GLSceneInputHandler.cpp" 
- "GLRenderer/src/GLRenderer/OpenGL/Scenes/C2/LightingCubes.cpp")
+ "GLRenderer/src/GLRenderer/OpenGL/Scenes/C2/LightingCubes.cpp" "GLRenderer/src/GLRenderer/OpenGL/Lighting/GLMaterial.cpp" "GLRenderer/src/GLRenderer/OpenGL/Lighting/GLPointLight.cpp")
 
 include(FetchContent)
 

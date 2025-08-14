@@ -95,8 +95,17 @@ namespace GLRenderer {
         ImGui::Separator();
         ImGui::Text("Lighting");
 
-        ImGui::SliderFloat3("Light Pos", &lightPos_[0], -10.0f, 10.0f);
-        ImGui::ColorEdit3("Light Color", &lightColor_[0], ImGuiColorEditFlags_DisplayRGB);
+        ImGui::SliderFloat3("Light Position", &pointLight_.getPosition()[0], -10.0f, 10.0f);
+        ImGui::ColorEdit3("Light Ambient", &pointLight_.getAmbient()[0], ImGuiColorEditFlags_DisplayRGB);
+        ImGui::ColorEdit3("Light Diffuse", &pointLight_.getDiffuse()[0], ImGuiColorEditFlags_DisplayRGB);
+        ImGui::ColorEdit3("Light Specular", &pointLight_.getSpecular()[0], ImGuiColorEditFlags_DisplayRGB);
+
+        ImGui::Text("Material Settings");
+
+        ImGui::ColorEdit3("Material Ambient", &copperMat_.getAmbient()[0], ImGuiColorEditFlags_DisplayRGB);
+        ImGui::ColorEdit3("Material Diffuse", &copperMat_.getDiffuse()[0], ImGuiColorEditFlags_DisplayRGB);
+        ImGui::ColorEdit3("Material Specular", &copperMat_.getSpecular()[0], ImGuiColorEditFlags_DisplayRGB);
+        ImGui::SliderFloat("Material Shininess", &copperMat_.getShininess(), 1.0f, 256.0f);
 
         ImGui::Separator();
         ImGui::Text("Renderer Info");
@@ -137,6 +146,18 @@ namespace GLRenderer {
         lightingShader_.use();
         copper_.loadTexture();
         lightingShader_.setInt("diffuseTexture", 0);
+        //basic material stuff for copper. this will be the copper material based off real life values
+        glm::vec3 cpAmbient = glm::vec3(0.19125f, 0.0735f, 0.0225f);
+        glm::vec3 cpDiffuse = glm::vec3(0.7038f, 0.27048f, 0.0828f);
+        glm::vec3 cpSpecular = glm::vec3(0.256777f, 0.137622f, 0.086014f);
+        float cpShininess = 64.0f;
+        copperMat_.setProperties(cpAmbient, cpDiffuse, cpSpecular, cpShininess);
+        //point light config
+        glm::vec3 plPosition(1.2f, 1.0f, 2.0f);
+        glm::vec3 plAmbient(0.2f, 0.2f, 0.2f);
+        glm::vec3 plDiffuse(0.5f, 0.5f, 0.5f);
+        glm::vec3 plSpecular(1.0f, 1.0f, 1.0f);
+        pointLight_.setProperties(plPosition, plAmbient, plDiffuse, plSpecular);
     }
 
    void LightingCubes::SetupBuffers() {
@@ -208,22 +229,30 @@ namespace GLRenderer {
        // world transformation
        glm::mat4 model = glm::mat4(1.0f);
        lightingShader_.setMat4("model", model);
-
+       //bind meshbuffer
        cubeMesh_.Bind();
-
+       //bind texture
        copper_.bind(0);
-
+       //set uniforms in shader for material
+       copperMat_.applyProperties(lightingShader_);
+       //apply point light properties
+       pointLight_.applyProperties(lightingShader_);
+       //draw
        glDrawArrays(GL_TRIANGLES, 0, 36);
-
+       //unbind mesh 
+      cubeMesh_.Unbind();
+       //unbind
        copper_.unbind();
+
+       lightMesh_.Bind();
 
        lightSourceShader_.use();
        lightSourceShader_.setMat4("projection", projection_);
        lightSourceShader_.setMat4("view", view_);
-       lightSourceShader_.setVec3("lightColor", lightColor_);
+       lightSourceShader_.setVec3("lightColor", pointLight_.getDiffuse());
 
        model = glm::mat4(1.0f);
-       model = glm::translate(model, lightPos_);
+       model = glm::translate(model, pointLight_.getPosition());
        model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
        lightSourceShader_.setMat4("model", model);
 

@@ -9,6 +9,8 @@
 #include <GLRenderer/OpenGL/GLMeshBuffers.hpp>
 #include <GLRenderer/Interface/IResizableScene.hpp>
 #include <GLRenderer/OpenGL/GLSceneInputHandler.hpp>
+#include <GLRenderer/OpenGL/Lighting/GLMaterial.hpp>
+#include <GLRenderer/OpenGL/Lighting/GLPointLight.hpp>
 #include <iostream>
 #include <memory>
 
@@ -121,7 +123,7 @@ namespace GLRenderer {
 	{{-0.5f,  0.5f,  0.5f}, { 0.0f,  1.0f,  0.0f}},
 	{{-0.5f,  0.5f, -0.5f}, { 0.0f,  1.0f,  0.0f}},
 		};
-
+ 
 		std::vector<Vertex> texNormVertices = {
 	{{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}, { 0.0f,  0.0f, -1.0f}},
 	{{ 0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}, { 0.0f,  0.0f, -1.0f}},
@@ -188,6 +190,10 @@ namespace GLRenderer {
 		GLShader lightingShader_;
 		GLShader lightSourceShader_;
 		GLTexture2D copper_;
+		//material for copper
+		GLMaterial copperMat_;
+		//point-light
+		GLPointLight pointLight_;
 		//context for camera input
 		GLCameraInputContext inputContext_;
 
