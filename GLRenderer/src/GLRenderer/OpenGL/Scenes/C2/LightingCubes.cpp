@@ -6,7 +6,7 @@
 
 namespace GLRenderer {
 
-	LightingCubes::LightingCubes() : view_(glm::mat4(1.0)), projection_(glm::mat4(1.0)), lightPos_(glm::vec3(1.2f, 1.0f, 2.0f)), lightColor_(glm::vec3(1.0f, 1.0f, 1.0f)), lightingShader_("res/Shaders/Scenes/C2/lighting.vert", "res/Shaders/Scenes/C2/lighting.frag"), lightSourceShader_("res/Shaders/Scenes/C2/lightSource.vert", "res/Shaders/Scenes/C2/lightSource.frag"), copper_("res/Textures/copper.png"), isInitialized_(false), isCleaned_(false), isWireframe_(false), imguiInitialized_(false), isPointerLocked_(true), windowWidth_(1280), windowHeight_(720) {}
+	LightingCubes::LightingCubes() : view_(glm::mat4(1.0)), projection_(glm::mat4(1.0)), lightPos_(glm::vec3(1.2f, 1.0f, 2.0f)), lightColor_(glm::vec3(1.0f, 1.0f, 1.0f)), lightingShader_("res/Shaders/Scenes/C2/lighting.vert", "res/Shaders/Scenes/C2/lighting.frag"), lightSourceShader_("res/Shaders/Scenes/C2/lightSource.vert", "res/Shaders/Scenes/C2/lightSource.frag"), containerDiffuse_("res/Textures/container2.png"), containerSpecular_("res/Textures/container2_specular.png"), containerEmission_("res/Textures/matrix.jpg"), isInitialized_(false), isCleaned_(false), isWireframe_(false), imguiInitialized_(false), isPointerLocked_(true), windowWidth_(1280), windowHeight_(720) {}
 
 	LightingCubes::~LightingCubes() {
 		if (!isInitialized_ || isCleaned_) return;
@@ -119,12 +119,39 @@ namespace GLRenderer {
         ImGui::ColorEdit3("Light Specular", &pointLight_.getSpecular()[0], ImGuiColorEditFlags_DisplayRGB);
 
         ImGui::Text("Material Settings");
+        // Small square preview size
+        ImVec2 texSize(128, 128);
 
-        ImGui::ColorEdit3("Material Ambient", &copperMat_.getAmbient()[0], ImGuiColorEditFlags_DisplayRGB);
-        ImGui::ColorEdit3("Material Diffuse", &copperMat_.getDiffuse()[0], ImGuiColorEditFlags_DisplayRGB);
-        ImGui::ColorEdit3("Material Specular", &copperMat_.getSpecular()[0], ImGuiColorEditFlags_DisplayRGB);
-        ImGui::SliderFloat("Material Shininess", &copperMat_.getShininess(), 1.0f, 256.0f);
+        // Track how much space is left on the current line
+        float spacing = ImGui::GetStyle().ItemSpacing.x;
+        float availWidth = ImGui::GetContentRegionAvail().x;
 
+        // Reset tracker
+        float usedWidth = 0.0f;
+
+        auto showTexture = [&](const char* label, std::shared_ptr<const GLRenderer::GLTexture2D> texture) {
+            if (!texture) return;
+
+            ImGui::BeginGroup();  // Group label and image together
+            ImGui::Text("%s", label);
+            ImGui::Image((void*)(intptr_t)texture->getID(), texSize);
+            ImGui::EndGroup();
+
+            usedWidth += texSize.x + spacing;
+
+            // If there’s still room on the same line, continue
+            if (usedWidth + texSize.x <= availWidth)
+                ImGui::SameLine();
+            else
+                usedWidth = 0.0f;  // Reset when wrapping
+            };
+
+        // Render each texture (if it exists)
+        showTexture("Diffuse Map", containerMat_.getDiffuseTexture());
+        showTexture("Specular Map", containerMat_.getSpecularTexture());
+        showTexture("Emissive Map", containerMat_.getEmissiveTexture());
+
+        ImGui::SliderFloat("Material Shininess", &containerMat_.getShininess(), 1.0f, 256.0f);
 
         ImGui::Separator();
         ImGui::Text("Renderer Info");
@@ -163,14 +190,15 @@ namespace GLRenderer {
         lightingShader_.init();
         lightSourceShader_.init();
         lightingShader_.use();
-        copper_.loadTexture();
-        lightingShader_.setInt("diffuseTexture", 0);
-        //basic material stuff for copper. this will be the copper material based off real life values
-        glm::vec3 cpAmbient = glm::vec3(0.19125f, 0.0735f, 0.0225f);
-        glm::vec3 cpDiffuse = glm::vec3(0.7038f, 0.27048f, 0.0828f);
-        glm::vec3 cpSpecular = glm::vec3(0.256777f, 0.137622f, 0.086014f);
-        float cpShininess = 64.0f;
-        copperMat_.setProperties(cpAmbient, cpDiffuse, cpSpecular, cpShininess);
+        //load textures
+        containerDiffuse_.loadTexture();
+        containerSpecular_.loadTexture();
+        containerEmission_.loadTexture();
+        //setup material values
+        containerMat_.setupProperties(std::make_shared<GLTexture2D>(containerDiffuse_), std::make_shared<GLTexture2D>(containerSpecular_), std::make_shared<GLTexture2D>(containerEmission_));
+        //shininess
+        float containerShininess = 64.0f;
+        containerMat_.setShininess(containerShininess);
         //point light config
         glm::vec3 plPosition(1.2f, 1.0f, 2.0f);
         glm::vec3 plAmbient(0.2f, 0.2f, 0.2f);
@@ -250,17 +278,21 @@ namespace GLRenderer {
        //bind meshbuffer
        cubeMesh_.Bind();
        //bind texture
-       copper_.bind(0);
+       containerDiffuse_.bind(0);
+       containerSpecular_.bind(1);
+       containerEmission_.bind(2);
        //set uniforms in shader for material
-       copperMat_.applyProperties(lightingShader_);
+       containerMat_.applyProperties(lightingShader_);
        //apply point light properties
        pointLight_.applyProperties(lightingShader_);
        //draw
        glDrawArrays(GL_TRIANGLES, 0, 36);
        //unbind mesh 
-      cubeMesh_.Unbind();
+       cubeMesh_.Unbind();
        //unbind
-       copper_.unbind();
+       containerDiffuse_.unbind();
+       containerSpecular_.unbind();
+       containerEmission_.unbind();
 
        lightMesh_.Bind();
 
@@ -286,7 +318,8 @@ namespace GLRenderer {
        //cleanup mesh buffer, set is cleaned to true
        cubeMesh_.Cleanup();
        lightMesh_.Cleanup();
-       copper_.cleanup();
+       containerDiffuse_.cleanup();
+       containerSpecular_.cleanup();
        cleanupImGUI();
        isCleaned_ = true;
    }

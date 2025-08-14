@@ -2,9 +2,9 @@
 out vec4 FragColor;
 
 struct Material {
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+    sampler2D diffuse;
+    sampler2D specular;
+    sampler2D emission;
     float shininess;
 };
 
@@ -16,35 +16,46 @@ struct Light {
     vec3 specular;
 };
 
-in vec2 TexCoords; // You must pass this from the vertex shader
+in vec2 TexCoords;
 in vec3 Normal;
-in vec3 FragPos; 
+in vec3 FragPos;
+
+uniform bool useEmissionMap;
+uniform bool useDiffuseMap;
+uniform bool useSpecularMap;
 
 uniform Material material;
-uniform Light light;  
-uniform sampler2D diffuseTexture; // Rename to something meaningful
+uniform Light light;
 uniform vec3 viewPos;
 
 void main()
 {
-    //ambient and texture color
-    vec3 ambient = light.ambient * material.ambient;
-    vec3 diffuseTexColor = texture(diffuseTexture, TexCoords).rgb;
+    // === Texture fallback logic ===
+    vec3 diffuseTexture = useDiffuseMap
+        ? vec3(texture(material.diffuse, TexCoords)).rgb
+        : vec3(1.0);  // fallback to white
 
-    //diffuse and normals
+    vec3 specularTexture = useSpecularMap
+        ? vec3(texture(material.specular, TexCoords)).rgb
+        : vec3(1.0);  // fallback to white
+
+    vec3 emission = useEmissionMap
+        ? texture(material.emission, TexCoords).rgb 
+        : vec3(0.0);  // fallback to black (no emission)
+
+    // === Lighting calculations ===
+    vec3 ambient = light.ambient * diffuseTexture;
+
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(light.position - FragPos);
-
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * light.diffuse;
+    vec3 diffuse = light.diffuse * diff * diffuseTexture;
 
-    //specular 
     vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);  
+    vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    vec3 specular = light.specular * (spec * material.specular);  
+    vec3 specular = light.specular * spec * specularTexture;
 
-    //result
-    vec3 result = (ambient + diffuse + specular) * diffuseTexColor;
+    vec3 result = ambient + diffuse + specular + emission;
     FragColor = vec4(result, 1.0);
 }

@@ -189,9 +189,12 @@ namespace GLRenderer {
 		//shader class that handles external shader files aswell as teh shaders and the program themselves/itself
 		GLShader lightingShader_;
 		GLShader lightSourceShader_;
-		GLTexture2D copper_;
+		//textures
+		GLTexture2D containerDiffuse_;
+		GLTexture2D containerSpecular_;
+		GLTexture2D containerEmission_;
 		//material for copper
-		GLMaterial copperMat_;
+		GLMaterial containerMat_;
 		//point-light
 		GLPointLight pointLight_;
 		//context for camera input
