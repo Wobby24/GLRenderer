@@ -100,7 +100,7 @@ set(PROJECT_SOURCES
     "GLRenderer/src/GLRenderer/OpenGL/GLSceneManager.cpp" 
     "GLRenderer/src/GLRenderer/OpenGL/GLCamera.cpp" 
     "GLRenderer/src/GLRenderer/OpenGL/GLSceneInputHandler.cpp" 
- "GLRenderer/src/GLRenderer/OpenGL/Scenes/C2/LightingCubes.cpp" "GLRenderer/src/GLRenderer/OpenGL/Lighting/GLMaterial.cpp" "GLRenderer/src/GLRenderer/OpenGL/Lighting/GLPointLight.cpp")
+ "GLRenderer/src/GLRenderer/OpenGL/Scenes/C2/LightingCubes.cpp" "GLRenderer/src/GLRenderer/OpenGL/Lighting/GLMaterial.cpp" "GLRenderer/src/GLRenderer/OpenGL/Lighting/Types/GLPointLight.cpp" "GLRenderer/src/GLRenderer/OpenGL/Lighting/GLLightManager.cpp" "GLRenderer/src/GLRenderer/OpenGL/Lighting/Types/GLSpotLight.cpp" "GLRenderer/src/GLRenderer/OpenGL/Lighting/Types/GLDirLight.cpp")
 
 include(FetchContent)
 

@@ -39,10 +39,12 @@ namespace GLRenderer {
         if (hasEmissiveTexture()) {
             glShader->setInt("useEmissionMap", 1);
             glShader->setInt("material.emission", 2);
+            glShader->setFloat("material.emissionIntensity", emissionIntensity);
             emissiveMap_->bind(2);
         }
         else {
             glShader->setInt("useEmissionMap", 0);
+            glShader->setFloat("material.emissionIntensity", 0.0f);
         }
 
         // Set shininess regardless

@@ -17,6 +17,7 @@ namespace GLRenderer {
         void setSpecularTexture(std::shared_ptr<GLTexture2D> texture);
         void setEmissiveTexture(std::shared_ptr<GLTexture2D> texture);
         void setShininess(float shininess);
+        void setEmissionIntensity(float intensity);
 
         void setupProperties(
             std::shared_ptr<GLTexture2D> diffuseTexture,
@@ -39,6 +40,8 @@ namespace GLRenderer {
         // Getter/setter for shininess
         float& getShininess();
         const float& getShininess() const;
+        float& getEmissionIntensity();
+        const float& getEmissionIntensity() const;
 
         bool hasDiffuseTexture() const;
         bool hasSpecularTexture() const;
@@ -46,6 +49,7 @@ namespace GLRenderer {
 
     private:
         float shininess_ = 32.0f;
+        float emissionIntensity = 1.0f;
 
         std::shared_ptr<GLTexture2D> diffuseMap_ = nullptr;
         std::shared_ptr<GLTexture2D> specularMap_ = nullptr;

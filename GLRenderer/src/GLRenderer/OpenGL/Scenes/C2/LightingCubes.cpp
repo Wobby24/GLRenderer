@@ -3,10 +3,13 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include <GLRenderer/Interface/Types/VertexAttribFlagsOperators.hpp>
+#include <GLRenderer/OpenGL/Lighting/Types/GLDirLight.hpp>
+#include <GLRenderer/OpenGL/Lighting/Types/GLPointLight.hpp>
+#include <GLRenderer/OpenGL/Lighting/Types/GLSpotLight.hpp>
 
 namespace GLRenderer {
 
-	LightingCubes::LightingCubes() : view_(glm::mat4(1.0)), projection_(glm::mat4(1.0)), lightPos_(glm::vec3(1.2f, 1.0f, 2.0f)), lightColor_(glm::vec3(1.0f, 1.0f, 1.0f)), lightingShader_("res/Shaders/Scenes/C2/lighting.vert", "res/Shaders/Scenes/C2/lighting.frag"), lightSourceShader_("res/Shaders/Scenes/C2/lightSource.vert", "res/Shaders/Scenes/C2/lightSource.frag"), containerDiffuse_("res/Textures/container2.png"), containerSpecular_("res/Textures/container2_specular.png"), containerEmission_("res/Textures/matrix.jpg"), isInitialized_(false), isCleaned_(false), isWireframe_(false), imguiInitialized_(false), isPointerLocked_(true), windowWidth_(1280), windowHeight_(720) {}
+	LightingCubes::LightingCubes() : view_(glm::mat4(1.0)), projection_(glm::mat4(1.0)), lightPos_(glm::vec3(1.2f, 1.0f, 2.0f)), lightColor_(glm::vec3(1.0f, 1.0f, 1.0f)), lightingShader_("res/Shaders/Scenes/C2/lighting.vert", "res/Shaders/Scenes/C2/lighting.frag"), lightSourceShader_("res/Shaders/Scenes/C2/lightSource.vert", "res/Shaders/Scenes/C2/lightSource.frag"), containerDiffuse_("res/Textures/container2.png"), containerSpecular_("res/Textures/container2_specular.png"), containerEmission_("res/Textures/matrix.jpg"), isInitialized_(false), isCleaned_(false), isWireframe_(false), imguiInitialized_(false), isPointerLocked_(true), showExitConfirmDialog(false), windowWidth_(1280), windowHeight_(720) {}
 
 	LightingCubes::~LightingCubes() {
 		if (!isInitialized_ || isCleaned_) return;
@@ -43,6 +46,231 @@ namespace GLRenderer {
 
         imguiInitialized_ = true;
     }
+
+    void LightingCubes::renderLightingUI() {
+        ImGui::Separator();
+        ImGui::Text("Dynamic Lights");
+
+        static int selectedLightID = -1;
+        bool lightsChanged = false; // Track if any light property changed
+
+        if (ImGui::CollapsingHeader("Manage Lights", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::Button("Add Point Light")) {
+                if (lightManager_->GetNumLights(LightType::Point) < GLRenderer::GLLightManager::MAX_POINT_LIGHTS) {
+                    auto pointLight = std::make_shared<GLRenderer::GLPointLight>();
+                    pointLight->setPosition({ 0.f, 0.f, 0.f });
+                    pointLight->setAmbient({ 0.05f, 0.05f, 0.05f });
+                    pointLight->setDiffuse({ 0.8f, 0.8f, 0.8f });
+                    pointLight->setSpecular({ 1.0f, 1.0f, 1.0f });
+                    pointLight->setIntensity(1.0f);
+                    selectedLightID = lightManager_->AddLight(pointLight);
+                    lightsChanged = true;
+                }
+            }
+
+            if (ImGui::Button("Add Directional Light")) {
+                if (lightManager_->GetNumLights(LightType::Directional) < GLRenderer::GLLightManager::MAX_DIR_LIGHTS) {
+                    auto dirLight = std::make_shared<GLRenderer::GLDirLight>();
+                    dirLight->setDirection({ -0.2f, -1.0f, -0.3f });
+                    dirLight->setAmbient({ 0.1f, 0.1f, 0.1f });
+                    dirLight->setDiffuse({ 0.5f, 0.5f, 0.5f });
+                    dirLight->setSpecular({ 1.0f, 1.0f, 1.0f });
+                    dirLight->setIntensity(1.0f);
+                    selectedLightID = lightManager_->AddLight(dirLight);
+                    lightsChanged = true;
+                }
+            }
+
+            if (ImGui::Button("Add Spot Light")) {
+                if (lightManager_->GetNumLights(LightType::Spot) < GLRenderer::GLLightManager::MAX_SPOT_LIGHTS) {
+                    auto spotLight = std::make_shared<GLRenderer::GLSpotLight>();
+                    spotLight->setPosition({ 0.f, 0.f, 0.f });
+                    spotLight->setDirection({ 0.f, -1.f, 0.f });
+                    spotLight->setAmbient({ 0.05f, 0.05f, 0.05f });
+                    spotLight->setDiffuse({ 0.9f, 0.9f, 0.9f });
+                    spotLight->setSpecular({ 1.f, 1.f, 1.f });
+                    spotLight->setIntensity(1.0f);
+                    selectedLightID = lightManager_->AddLight(spotLight);
+                    lightsChanged = true;
+                }
+            }
+
+            ImGui::Separator();
+
+            // Prepare lights list for dropdown
+            std::vector<std::pair<int, std::string>> lightEntries;
+            for (const auto& [id, light] : lightManager_->GetAllLights()) {
+                std::string label = "Light #" + std::to_string(id) + " (" +
+                    (light->getType() == LightType::Point ? "Point" :
+                        light->getType() == LightType::Directional ? "Directional" :
+                        light->getType() == LightType::Spot ? "Spot" : "Unknown") + ")";
+                lightEntries.emplace_back(id, label);
+            }
+
+            // Find index of selectedLightID
+            static int selectedIndex = -1;
+            if (selectedLightID != -1) {
+                selectedIndex = -1;
+                for (int i = 0; i < (int)lightEntries.size(); ++i) {
+                    if (lightEntries[i].first == selectedLightID) {
+                        selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            else {
+                selectedIndex = -1;
+            }
+
+            // Combo box to select light
+            if (ImGui::BeginCombo("Select Light", selectedIndex >= 0 ? lightEntries[selectedIndex].second.c_str() : "None")) {
+                for (int n = 0; n < (int)lightEntries.size(); n++) {
+                    bool isSelected = (selectedIndex == n);
+                    if (ImGui::Selectable(lightEntries[n].second.c_str(), isSelected)) {
+                        selectedIndex = n;
+                        selectedLightID = lightEntries[n].first;
+                    }
+                    if (isSelected)
+                        ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+
+            // Edit selected light
+            if (selectedLightID != -1) {
+                auto light = lightManager_->GetLight(selectedLightID);
+                if (!light) {
+                    selectedLightID = -1;
+                    return;
+                }
+
+                ImGui::Separator();
+                ImGui::Text("Editing Light #%d", selectedLightID);
+
+                if (light->getType() == LightType::Point) {
+                    auto pl = std::dynamic_pointer_cast<GLRenderer::GLPointLight>(light);
+                    if (!pl) {
+                        std::cerr << "Error: dynamic_pointer_cast to GLPointLight failed" << std::endl;
+                        return;
+                    }
+                    float intensity = pl->getIntensity();
+                    glm::vec3 ambient = pl->getAmbient();
+                    glm::vec3 diffuse = pl->getDiffuse();
+                    glm::vec3 specular = pl->getSpecular();
+                    glm::vec3 position = pl->getPosition();
+
+                    if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 10.0f)) {
+                        pl->setIntensity(intensity);
+                        lightsChanged = true;
+                    }
+                    if (ImGui::ColorEdit3("Ambient", &ambient[0])) {
+                        pl->setAmbient(ambient);
+                        lightsChanged = true;
+                    }
+                    if (ImGui::ColorEdit3("Diffuse", &diffuse[0])) {
+                        pl->setDiffuse(diffuse);
+                        lightsChanged = true;
+                    }
+                    if (ImGui::ColorEdit3("Specular", &specular[0])) {
+                        pl->setSpecular(specular);
+                        lightsChanged = true;
+                    }
+                    if (ImGui::SliderFloat3("Position", &position[0], -100.0f, 100.0f)) {
+                        pl->setPosition(position);
+                        lightsChanged = true;
+                    }
+                }
+                else if (light->getType() == LightType::Directional) {
+                    auto dirLight = std::dynamic_pointer_cast<GLRenderer::GLDirLight>(light);
+                    if (dirLight) {
+                        glm::vec3 direction = dirLight->getDirection();
+                        glm::vec3 ambient = dirLight->getAmbient();
+                        glm::vec3 diffuse = dirLight->getDiffuse();
+                        glm::vec3 specular = dirLight->getSpecular();
+                        float intensity = dirLight->getIntensity();
+
+                        if (ImGui::SliderFloat3("Direction", &direction[0], -1.0f, 1.0f)) {
+                            dirLight->setDirection(direction);
+                            lightsChanged = true;
+                        }
+                        if (ImGui::ColorEdit3("Ambient", &ambient[0])) {
+                            dirLight->setAmbient(ambient);
+                            lightsChanged = true;
+                        }
+                        if (ImGui::ColorEdit3("Diffuse", &diffuse[0])) {
+                            dirLight->setDiffuse(diffuse);
+                            lightsChanged = true;
+                        }
+                        if (ImGui::ColorEdit3("Specular", &specular[0])) {
+                            dirLight->setSpecular(specular);
+                            lightsChanged = true;
+                        }
+                        if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 10.0f)) {
+                            dirLight->setIntensity(intensity);
+                            lightsChanged = true;
+                        }
+                    }
+                }
+                else if (light->getType() == LightType::Spot) {
+                    auto sl = std::dynamic_pointer_cast<GLRenderer::GLSpotLight>(light);
+                    if (sl) {
+                        float intensity = sl->getIntensity();
+                        glm::vec3 ambient = sl->getAmbient();
+                        glm::vec3 diffuse = sl->getDiffuse();
+                        glm::vec3 specular = sl->getSpecular();
+                        glm::vec3 position = sl->getPosition();
+                        glm::vec3 direction = sl->getDirection();
+                        float cutOff = sl->getCutOff();
+                        float outerCutOff = sl->getOuterCutOff();
+
+                        if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 10.0f)) {
+                            sl->setIntensity(intensity);
+                            lightsChanged = true;
+                        }
+                        if (ImGui::ColorEdit3("Ambient", &ambient[0])) {
+                            sl->setAmbient(ambient);
+                            lightsChanged = true;
+                        }
+                        if (ImGui::ColorEdit3("Diffuse", &diffuse[0])) {
+                            sl->setDiffuse(diffuse);
+                            lightsChanged = true;
+                        }
+                        if (ImGui::ColorEdit3("Specular", &specular[0])) {
+                            sl->setSpecular(specular);
+                            lightsChanged = true;
+                        }
+                        if (ImGui::SliderFloat3("Position", &position[0], -100.0f, 100.0f)) {
+                            sl->setPosition(position);
+                            lightsChanged = true;
+                        }
+                        if (ImGui::SliderFloat3("Direction", &direction[0], -1.0f, 1.0f)) {
+                            sl->setDirection(direction);
+                            lightsChanged = true;
+                        }
+                        if (ImGui::SliderFloat("Cutoff", &cutOff, 0.0f, 90.0f)) {
+                            sl->setCutOff(cutOff);
+                            lightsChanged = true;
+                        }
+                        if (ImGui::SliderFloat("Outer Cutoff", &outerCutOff, 0.0f, 90.0f)) {
+                            sl->setOuterCutOff(outerCutOff);
+                            lightsChanged = true;
+                        }
+                    }
+                }
+
+                if (ImGui::Button("Remove Light")) {
+                    lightManager_->RemoveLight(selectedLightID);
+                    selectedLightID = -1;
+                    lightsChanged = true;
+                }
+            }
+        }
+
+        if (lightsChanged) {
+            lightManager_->ApplyLights(lightingShader_);
+        }
+    }
+
 
     void LightingCubes::cleanupImGUI() {
         if (!imguiInitialized_) return;
@@ -113,10 +341,7 @@ namespace GLRenderer {
         ImGui::Separator();
         ImGui::Text("Lighting");
 
-        ImGui::SliderFloat3("Light Position", &pointLight_.getPosition()[0], -10.0f, 10.0f);
-        ImGui::ColorEdit3("Light Ambient", &pointLight_.getAmbient()[0], ImGuiColorEditFlags_DisplayRGB);
-        ImGui::ColorEdit3("Light Diffuse", &pointLight_.getDiffuse()[0], ImGuiColorEditFlags_DisplayRGB);
-        ImGui::ColorEdit3("Light Specular", &pointLight_.getSpecular()[0], ImGuiColorEditFlags_DisplayRGB);
+        renderLightingUI();
 
         ImGui::Text("Material Settings");
         // Small square preview size
@@ -149,7 +374,7 @@ namespace GLRenderer {
         // Render each texture (if it exists)
         showTexture("Diffuse Map", containerMat_.getDiffuseTexture());
         showTexture("Specular Map", containerMat_.getSpecularTexture());
-        showTexture("Emissive Map", containerMat_.getEmissiveTexture());
+        showTexture("Emission Map", containerMat_.getEmissiveTexture());
 
         ImGui::SliderFloat("Material Shininess", &containerMat_.getShininess(), 1.0f, 256.0f);
 
@@ -187,6 +412,8 @@ namespace GLRenderer {
     } 
 
     void LightingCubes::initResources() {
+        lightManager_ = std::make_unique<GLLightManager>();
+        lightManager_->Init();
         lightingShader_.init();
         lightSourceShader_.init();
         lightingShader_.use();
@@ -199,12 +426,6 @@ namespace GLRenderer {
         //shininess
         float containerShininess = 64.0f;
         containerMat_.setShininess(containerShininess);
-        //point light config
-        glm::vec3 plPosition(1.2f, 1.0f, 2.0f);
-        glm::vec3 plAmbient(0.2f, 0.2f, 0.2f);
-        glm::vec3 plDiffuse(0.5f, 0.5f, 0.5f);
-        glm::vec3 plSpecular(1.0f, 1.0f, 1.0f);
-        pointLight_.setProperties(plPosition, plAmbient, plDiffuse, plSpecular);
     }
 
    void LightingCubes::SetupBuffers() {
@@ -271,10 +492,6 @@ namespace GLRenderer {
        lightingShader_.setMat4("projection", projection_);
         
        lightingShader_.setVec3("viewPos", camera_.get()->getAttributes().position);
-
-       // world transformation
-       glm::mat4 model = glm::mat4(1.0f);
-       lightingShader_.setMat4("model", model);
        //bind meshbuffer
        cubeMesh_.Bind();
        //bind texture
@@ -283,10 +500,20 @@ namespace GLRenderer {
        containerEmission_.bind(2);
        //set uniforms in shader for material
        containerMat_.applyProperties(lightingShader_);
-       //apply point light properties
-       pointLight_.applyProperties(lightingShader_);
+       lightingShader_.setInt("numPointLights", lightManager_->GetNumLights(LightType::Point));
+       lightingShader_.setInt("numSpotLights", lightManager_->GetNumLights(LightType::Spot));
+       lightingShader_.setInt("numDirLights", lightManager_->GetNumLights(LightType::Directional));
        //draw
-       glDrawArrays(GL_TRIANGLES, 0, 36);
+       for (unsigned int i = 0; i < 10; i++)
+       {
+           glm::mat4 model = glm::mat4(1.0f);
+           model = glm::translate(model, cubePositions[i]);
+           float angle = 20.0f * i;
+           model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+           lightingShader_.setMat4("model", model);
+
+           glDrawArrays(GL_TRIANGLES, 0, 36);
+       }
        //unbind mesh 
        cubeMesh_.Unbind();
        //unbind
@@ -299,12 +526,23 @@ namespace GLRenderer {
        lightSourceShader_.use();
        lightSourceShader_.setMat4("projection", projection_);
        lightSourceShader_.setMat4("view", view_);
-       lightSourceShader_.setVec3("lightColor", pointLight_.getDiffuse());
 
-       model = glm::mat4(1.0f);
-       model = glm::translate(model, pointLight_.getPosition());
-       model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-       lightSourceShader_.setMat4("model", model);
+       for (const auto& [id, light] : lightManager_->GetAllLights()) {
+           if (light->getType() != LightType::Point)
+               continue;
+
+           auto pointLight = std::dynamic_pointer_cast<GLRenderer::GLPointLight>(light);
+           if (!pointLight) continue;
+
+           glm::mat4 model = glm::mat4(1.0f);
+           model = glm::translate(model, pointLight->getPosition());
+           model = glm::scale(model, glm::vec3(0.2f));
+
+           lightSourceShader_.setMat4("model", model);
+           lightSourceShader_.setVec3("lightColor", pointLight->getDiffuse());
+
+           glDrawArrays(GL_TRIANGLES, 0, 36);
+       }
 
        glDrawArrays(GL_TRIANGLES, 0, 36);
 
