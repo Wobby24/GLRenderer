@@ -6,6 +6,7 @@ namespace GLRenderer {
         TexturedQuad,
         Quad3D,
         LightingCubes,
+        Model3D,
         // etc
     };
 

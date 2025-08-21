@@ -53,7 +53,7 @@ namespace GLRenderer
     }
 
     void GLRenderer::InitializeScenes() {
-        auto scene = std::make_unique<LightingCubes>();
+        auto scene = std::make_unique<ModelLoading>();
 
         // Save the handle returned by addScene
         SceneHandle handle = sceneManager_.addScene(std::move(scene));

@@ -153,6 +153,9 @@ namespace GLRenderer {
         //load textures
         texture_.loadTexture();
         texture2_.loadTexture();
+        //set type
+        texture_.setType(TextureType::DIFFUSE);
+        texture2_.setType(TextureType::DIFFUSE);
         //set the textures in teh shader
         mainShader_.use();
         mainShader_.setInt("texture1", 0);

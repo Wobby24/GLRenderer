@@ -25,16 +25,16 @@
 #include <stdexcept>
 
 namespace GLRenderer {
-	GLTexture2D::GLTexture2D(const std::string& path) 
-		: 
-		filePath_(path), 
-		isLoaded_(false), 
-		isCleaned_(false), 
-		id_(0), 
-		wrapS_(GLTextureWrap::REPEAT), 
-		wrapT_(GLTextureWrap::REPEAT), 
-		minFilter_(GLTextureFilter::LINEAR), 
-		magFilter_(GLTextureFilter::LINEAR) 
+	GLTexture2D::GLTexture2D(const std::string& path, TextureType type)
+		: filePath_(path),
+		isLoaded_(false),
+		isCleaned_(false),
+		id_(0),
+		wrapS_(GLTextureWrap::REPEAT),
+		wrapT_(GLTextureWrap::REPEAT),
+		minFilter_(GLTextureFilter::LINEAR),
+		magFilter_(GLTextureFilter::LINEAR),
+		type_(type)
 	{}
 
 	GLTexture2D::~GLTexture2D() {
@@ -61,6 +61,16 @@ namespace GLRenderer {
 	void GLTexture2D::setFilter(GLTextureFilter minFilter, GLTextureFilter magFilter) {
 		minFilter_ = minFilter;
 		magFilter_ = magFilter;
+	}
+
+	std::string GLTexture2D::getTypeString() const {
+		switch (type_) {
+		case TextureType::DIFFUSE: return "diffuse";
+		case TextureType::SPECULAR: return "specular";
+		case TextureType::EMISSION: return "emission";
+		case TextureType::NORMAL: return "normal";
+		default: return "unknown";
+		}
 	}
 
 	void GLTexture2D::bind(unsigned int slot) const {

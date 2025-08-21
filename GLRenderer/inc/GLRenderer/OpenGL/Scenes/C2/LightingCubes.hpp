@@ -1,6 +1,5 @@
 #pragma once
 
-#include <glad/glad.h> // or your loader
 #include <GLRenderer/OpenGL/GLTexture.hpp>
 #include <GLRenderer/Window/Interface/IWindow.hpp>
 #include <GLRenderer/Interface/IRenderScene.hpp>
@@ -169,7 +168,23 @@ namespace GLRenderer {
 	{{-0.5f,  0.5f, -0.5f}, {0.0f, 1.0f}, { 0.0f,  1.0f,   0.0f}}
 		};
 
-		glm::vec3 cubePositions[10] = {
+		std::vector<Vertex> planeVertices_ = {
+			// Bottom-left
+			Vertex({ -0.5f, 0.0f, -0.5f }, { 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }),
+			// Bottom-right
+			Vertex({  0.5f, 0.0f, -0.5f }, { 1.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }),
+			// Top-right
+			Vertex({  0.5f, 0.0f,  0.5f }, { 1.0f, 1.0f }, { 0.0f, 1.0f, 0.0f }),
+			// Top-left
+			Vertex({ -0.5f, 0.0f,  0.5f }, { 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f }),
+		};
+
+		std::vector<uint32_t> planeIndices_ = {
+			0, 1, 2, // First triangle
+			2, 3, 0  // Second triangle
+		};
+
+		const glm::vec3 cubePositions[10] = {
 	glm::vec3(0.0f,  0.0f,  0.0f),
 	glm::vec3(2.0f,  5.0f, -15.0f),
 	glm::vec3(-1.5f, -2.2f, -2.5f),
@@ -201,6 +216,7 @@ namespace GLRenderer {
 		//We can now use GLMeshBuffers for centralized mesh control
 		GLMeshBuffers cubeMesh_;
 		GLMeshBuffers lightMesh_;
+		GLMeshBuffers planeMesh_;
 		//shader class that handles external shader files aswell as teh shaders and the program themselves/itself
 		GLShader lightingShader_;
 		GLShader lightSourceShader_;

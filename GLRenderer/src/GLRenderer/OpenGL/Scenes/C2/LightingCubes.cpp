@@ -158,6 +158,9 @@ namespace GLRenderer {
                     glm::vec3 diffuse = pl->getDiffuse();
                     glm::vec3 specular = pl->getSpecular();
                     glm::vec3 position = pl->getPosition();
+                    float constant = pl->getConstant();
+                    float linear = pl->getLinear();
+                    float quadratic = pl->getQuadratic();
 
                     if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 10.0f)) {
                         pl->setIntensity(intensity);
@@ -177,6 +180,18 @@ namespace GLRenderer {
                     }
                     if (ImGui::SliderFloat3("Position", &position[0], -100.0f, 100.0f)) {
                         pl->setPosition(position);
+                        lightsChanged = true;
+                    }
+                    if (ImGui::SliderFloat("Constant", &constant, 0.0f, 2.0f)) {
+                        pl->setConstant(constant);
+                        lightsChanged = true;
+                    }
+                    if (ImGui::SliderFloat("Linear", &linear, 0.0f, 1.0f)) {
+                        pl->setLinear(linear);
+                        lightsChanged = true;
+                    }
+                    if (ImGui::SliderFloat("Quadratic", &quadratic, 0.0f, 1.0f)) {
+                        pl->setQuadratic(quadratic);
                         lightsChanged = true;
                     }
                 }
@@ -222,6 +237,9 @@ namespace GLRenderer {
                         glm::vec3 direction = sl->getDirection();
                         float cutOff = sl->getCutOff();
                         float outerCutOff = sl->getOuterCutOff();
+                        float constant = sl->getConstant();
+                        float linear = sl->getLinear();
+                        float quadratic = sl->getQuadratic();
 
                         if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 10.0f)) {
                             sl->setIntensity(intensity);
@@ -247,13 +265,25 @@ namespace GLRenderer {
                             sl->setDirection(direction);
                             lightsChanged = true;
                         }
+                        if (ImGui::SliderFloat("Constant", &constant, 0.0f, 2.0f)) {
+                            sl->setConstant(constant);
+                            lightsChanged = true;
+                        }
+                        if (ImGui::SliderFloat("Linear", &linear, 0.0f, 1.0f)) {
+                            sl->setLinear(linear);
+                            lightsChanged = true;
+                        }
+                        if (ImGui::SliderFloat("Quadratic", &quadratic, 0.0f, 1.0f)) {
+                            sl->setQuadratic(quadratic);
+                            lightsChanged = true;
+                        }
                         if (ImGui::SliderFloat("Cutoff", &cutOff, 0.0f, 90.0f)) {
                             sl->setCutOff(cutOff);
                             lightsChanged = true;
                         }
                         if (ImGui::SliderFloat("Outer Cutoff", &outerCutOff, 0.0f, 90.0f)) {
                             sl->setOuterCutOff(outerCutOff);
-                            lightsChanged = true;
+                             lightsChanged = true;
                         }
                     }
                 }
@@ -330,7 +360,21 @@ namespace GLRenderer {
         // Reload shaders button
         if (ImGui::Button("Reload Shaders")) {
             lightingShader_.reload();
+
+            // Re-bind and re-set all relevant shader uniforms
+            lightingShader_.use();
+
+            // Update projection/view matrices
+            lightingShader_.setMat4("view", view_);
+            lightingShader_.setMat4("projection", projection_);
+
+            // Re-apply material properties
+            containerMat_.applyProperties(lightingShader_);
+
+            // Re-apply light uniforms
+            lightManager_->ApplyLights(lightingShader_);
         }
+
 
         ImGui::Separator();
         ImGui::Text("Camera Settings");
@@ -413,14 +457,20 @@ namespace GLRenderer {
 
     void LightingCubes::initResources() {
         lightManager_ = std::make_unique<GLLightManager>();
+
         lightManager_->Init();
         lightingShader_.init();
         lightSourceShader_.init();
+
         lightingShader_.use();
         //load textures
         containerDiffuse_.loadTexture();
         containerSpecular_.loadTexture();
         containerEmission_.loadTexture();
+
+        containerDiffuse_.setType(TextureType::DIFFUSE);
+        containerSpecular_.setType(TextureType::SPECULAR);
+        containerEmission_.setType(TextureType::EMISSION);
         //setup material values
         containerMat_.setupProperties(std::make_shared<GLTexture2D>(containerDiffuse_), std::make_shared<GLTexture2D>(containerSpecular_), std::make_shared<GLTexture2D>(containerEmission_));
         //shininess
@@ -438,15 +488,18 @@ namespace GLRenderer {
        cubeMesh_.Unbind();
 
        lightMesh_.Bind();
-
        lightMesh_.CreateVertices(cubeVertices_, GLRenderer::VertexAttribFlags::POSITION);
-
        lightMesh_.Unbind();
+
+       planeMesh_.Bind();
+       planeMesh_.CreateAll(planeVertices_, planeIndices_, GLRenderer::VertexAttribFlags::POSITION | GLRenderer::VertexAttribFlags::TEXCOORDS | GLRenderer::VertexAttribFlags::NORMAL);
+       planeMesh_.Unbind();
     }
 
    void LightingCubes::SetWindow(Window::IWindow& window) {
        GLFWwindow* native = static_cast<GLFWwindow*>(window.GetNativeHandle());
        isPointerLocked_ = glfwGetInputMode(native, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
+
        if (inputHandler_) {
            inputHandler_->RegisterCallbacks(native);
        }
@@ -485,7 +538,12 @@ namespace GLRenderer {
 
        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-       glPolygonMode(GL_FRONT_AND_BACK, isWireframe_ ? GL_LINE : GL_FILL);
+       if (isWireframe_) {
+           glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+       }
+       else {
+           glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+       }
 
        lightingShader_.use();
        lightingShader_.setMat4("view", view_);
@@ -504,9 +562,10 @@ namespace GLRenderer {
        lightingShader_.setInt("numSpotLights", lightManager_->GetNumLights(LightType::Spot));
        lightingShader_.setInt("numDirLights", lightManager_->GetNumLights(LightType::Directional));
        //draw
+       glm::mat4 model = glm::mat4(1.0f);
        for (unsigned int i = 0; i < 10; i++)
        {
-           glm::mat4 model = glm::mat4(1.0f);
+           model = glm::mat4(1.0f);
            model = glm::translate(model, cubePositions[i]);
            float angle = 20.0f * i;
            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
@@ -516,6 +575,19 @@ namespace GLRenderer {
        }
        //unbind mesh 
        cubeMesh_.Unbind();
+
+       planeMesh_.Bind();
+
+       model = glm::mat4(1.0f);
+       model = glm::translate(model, glm::vec3(0.0f, -5.0f, -5.0f));
+       model = glm::scale(model, glm::vec3(15.0f));
+
+       lightingShader_.use();
+       lightingShader_.setMat4("model", model);
+
+       glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(planeIndices_.size()), GL_UNSIGNED_INT, 0);
+
+       planeMesh_.Unbind();
        //unbind
        containerDiffuse_.unbind();
        containerSpecular_.unbind();
@@ -534,7 +606,7 @@ namespace GLRenderer {
            auto pointLight = std::dynamic_pointer_cast<GLRenderer::GLPointLight>(light);
            if (!pointLight) continue;
 
-           glm::mat4 model = glm::mat4(1.0f);
+           model = glm::mat4(1.0f);
            model = glm::translate(model, pointLight->getPosition());
            model = glm::scale(model, glm::vec3(0.2f));
 
@@ -543,8 +615,6 @@ namespace GLRenderer {
 
            glDrawArrays(GL_TRIANGLES, 0, 36);
        }
-
-       glDrawArrays(GL_TRIANGLES, 0, 36);
 
        lightMesh_.Unbind();
 
@@ -556,6 +626,7 @@ namespace GLRenderer {
        //cleanup mesh buffer, set is cleaned to true
        cubeMesh_.Cleanup();
        lightMesh_.Cleanup();
+       planeMesh_.Cleanup();
        containerDiffuse_.cleanup();
        containerSpecular_.cleanup();
        cleanupImGUI();

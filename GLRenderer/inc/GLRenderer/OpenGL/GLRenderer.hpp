@@ -10,6 +10,7 @@
 #include <GLRenderer/OpenGL/GLSceneManager.hpp>
 #include <GLRenderer/Window/Interface/IWindow.hpp>
 #include <GLRenderer/OpenGL/Scenes/C2/LightingCubes.hpp>
+#include <GLRenderer/OpenGL/Scenes/C3/ModelLoading.hpp>
 #include <memory>
 
 namespace GLRenderer
@@ -41,6 +42,7 @@ namespace GLRenderer
         TexturedQuad texturedTriangleScene_;
         std::unique_ptr<LightingCubes>  lightCubes_;
         std::unique_ptr<Quad3D> quad3DScene_;
+        std::unique_ptr<ModelLoading> modelLoadingScene_;
 
         Window::IWindow* window_ = nullptr; // Non-owning pointer
     };

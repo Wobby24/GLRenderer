@@ -5,6 +5,7 @@
 #include <string>
 
 namespace GLRenderer {
+
     enum class GLTextureWrap : GLenum {
         REPEAT = GL_REPEAT,
         MIRRORED_REPEAT = GL_MIRRORED_REPEAT,
@@ -17,9 +18,19 @@ namespace GLRenderer {
         LINEAR = GL_LINEAR
     };
 
+    // Add texture types enum
+    enum class TextureType {
+        DIFFUSE,
+        SPECULAR,
+        EMISSION,
+        NORMAL,
+        UNKNOWN
+    };
+
     class GLTexture2D : public ITexture {
     public:
-        GLTexture2D(const std::string& path);
+        // Add optional texture type param, default UNKNOWN
+        GLTexture2D(const std::string& path, TextureType type = TextureType::UNKNOWN);
         ~GLTexture2D() override;
 
         void loadTexture() override;
@@ -32,11 +43,20 @@ namespace GLRenderer {
 
         bool isCleanedUp() const { return isCleaned_; }
         bool isLoaded() const { return isLoaded_; }
+        const std::string& getFilePath() const { return filePath_; }
 
         void cleanup();
         void reload();
 
-        unsigned int getID() const { return id_;  }
+        unsigned int getID() const { return id_; }
+
+        // Texture type getter
+        TextureType getType() const { return type_; }
+        // Texture type setter
+        void setType(TextureType type) { type_ = type; }
+
+        // Optional: get string version of type for convenience
+        std::string getTypeString() const;
 
     private:
         std::string filePath_;
@@ -48,5 +68,8 @@ namespace GLRenderer {
         GLTextureWrap wrapT_ = GLTextureWrap::REPEAT;
         GLTextureFilter minFilter_ = GLTextureFilter::LINEAR;
         GLTextureFilter magFilter_ = GLTextureFilter::LINEAR;
+
+        TextureType type_ = TextureType::UNKNOWN;
     };
+
 }

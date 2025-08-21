@@ -5,10 +5,7 @@ cmake_policy(SET CMP0074 NEW)
 
 find_package(OpenGL REQUIRED)
 
-# Set warning flags per compiler
-set(PROJECT_WARNING_FLAGS "")
-
-# Multi-config support for Visual Studio, Xcode, else single-config default to Debug
+# Set default build type if not set
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
 endif()
@@ -17,48 +14,30 @@ if(CMAKE_GENERATOR MATCHES "Visual Studio" OR CMAKE_GENERATOR MATCHES "Xcode")
     set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Configs" FORCE)
 endif()
 
-# Compiler flags per configuration
+# Compiler flags
+set(PROJECT_WARNING_FLAGS "")
 foreach(OUTPUTCONFIG IN ITEMS Debug Release)
     string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG_UPPER)
-    if (MSVC)
-        if(${OUTPUTCONFIG_UPPER} STREQUAL "DEBUG")
-            set(CMAKE_CXX_FLAGS_DEBUG "/W4 /WX /Zi /Od")
-        elseif(${OUTPUTCONFIG_UPPER} STREQUAL "RELEASE")
-            set(CMAKE_CXX_FLAGS_RELEASE "/W4 /WX /O2")
-        endif()
+    if(MSVC)
+        set(CMAKE_CXX_FLAGS_DEBUG "/W4 /WX /Zi /Od")
+        set(CMAKE_CXX_FLAGS_RELEASE "/W4 /WX /O2")
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang|GNU")
-        if(${OUTPUTCONFIG_UPPER} STREQUAL "DEBUG")
-            set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wextra -Werror -g -O0")
-        elseif(${OUTPUTCONFIG_UPPER} STREQUAL "RELEASE")
-            set(CMAKE_CXX_FLAGS_RELEASE "-Wall -Wextra -Werror -O3")
-        endif()
+        set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wextra -Werror -g -O0")
+        set(CMAKE_CXX_FLAGS_RELEASE "-Wall -Wextra -Werror -O3")
     endif()
 endforeach()
 
-
-if (MSVC)
-    # Remove existing /W flags
+if(MSVC)
     string(REGEX REPLACE "/W[0-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     set(PROJECT_WARNING_FLAGS /W4 /WX)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-    set(PROJECT_WARNING_FLAGS -Wall -Wextra -Werror)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    set(PROJECT_WARNING_FLAGS -Wall -Wextra -Werror)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set(PROJECT_WARNING_FLAGS -Wall -Wextra -Werror)
 else()
-    message(WARNING "Unknown compiler, warnings as errors not enabled")
+    set(PROJECT_WARNING_FLAGS -Wall -Wextra -Werror)
 endif()
 
-# C++ Standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Default to Debug
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
-endif()
-
+# Path configuration
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/GLRenderer/src")
 set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/GLRenderer/inc")
 set(LIB_DIR "${CMAKE_SOURCE_DIR}/GLRenderer/lib")
@@ -73,67 +52,78 @@ elseif(UNIX)
     set(EXTERNAL_LIB_PLATFORM_DIR "${EXTERNAL_LIB_DIR}/linux")
 endif()
 
-# ----------------------------------------------------
-# Define GLAD as an OBJECT library
+# GLAD as OBJECT library
 add_library(glad_objects OBJECT "${SRC_DIR}/glad/glad.c")
-# Set compile definitions for the GLAD object library
 set_property(TARGET glad_objects PROPERTY COMPILE_DEFINITIONS "GLAD_GL_IMPLEMENTATION")
-# Make sure GLAD's own header is found when compiling glad.c
 target_include_directories(glad_objects PRIVATE "${EXTERNAL_INCLUDE_DIR}")
-# ----------------------------------------------------
 
-# Add remaining sources to project (excluding glad.c now)
+# Project source files
 set(PROJECT_SOURCES
     "${SRC_DIR}/main.cpp"
+    "${SRC_DIR}/Engine.cpp"
     "${SRC_DIR}/GLRenderer/GLRenderer.cpp"
     "${SRC_DIR}/GLRenderer/OpenGL/OpenGLInitializer.cpp"
-    "GLRenderer/src/GLRenderer/Window/GLFW_Window.cpp"
-    "${SRC_DIR}/Engine.cpp" 
-    "${SRC_DIR}/GLRenderer/OpenGL/Scenes/C1/HelloTriangle.cpp" 
-    "GLRenderer/src/GLRenderer/OpenGL/GLMeshBuffers.cpp" 
-    "GLRenderer/src/GLRenderer/OpenGL/GLShader.cpp" 
-    "GLRenderer/src/GLRenderer/OpenGL/Scenes/C1/TexturedQuad.cpp" 
-    "GLRenderer/src/GLRenderer/OpenGL/GLTexture.cpp" 
-    "GLRenderer/src/stb_image/stb_image.cpp" 
-    "GLRenderer/src/GLRenderer/OpenGL/Scenes/C1/Quad3D.cpp" 
-    "GLRenderer/src/GLRenderer/OpenGL/GLRenderState.cpp" 
-    "GLRenderer/src/GLRenderer/OpenGL/GLSceneManager.cpp" 
-    "GLRenderer/src/GLRenderer/OpenGL/GLCamera.cpp" 
-    "GLRenderer/src/GLRenderer/OpenGL/GLSceneInputHandler.cpp" 
- "GLRenderer/src/GLRenderer/OpenGL/Scenes/C2/LightingCubes.cpp" "GLRenderer/src/GLRenderer/OpenGL/Lighting/GLMaterial.cpp" "GLRenderer/src/GLRenderer/OpenGL/Lighting/Types/GLPointLight.cpp" "GLRenderer/src/GLRenderer/OpenGL/Lighting/GLLightManager.cpp" "GLRenderer/src/GLRenderer/OpenGL/Lighting/Types/GLSpotLight.cpp" "GLRenderer/src/GLRenderer/OpenGL/Lighting/Types/GLDirLight.cpp")
+    "${SRC_DIR}/GLRenderer/Window/GLFW_Window.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/Scenes/C1/HelloTriangle.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/Scenes/C1/TexturedQuad.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/Scenes/C1/Quad3D.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/Scenes/C2/LightingCubes.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/GLMeshBuffers.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/GLShader.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/GLTexture.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/GLRenderState.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/GLSceneManager.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/GLCamera.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/GLSceneInputHandler.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/GLMesh.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/Lighting/GLMaterial.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/Lighting/GLLightManager.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/Lighting/Types/GLPointLight.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/Lighting/Types/GLSpotLight.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/Lighting/Types/GLDirLight.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/GLMesh.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/GLModel.cpp"
+    "${SRC_DIR}/GLRenderer/OpenGL/Scenes/C3/ModelLoading.cpp"
+    "${SRC_DIR}/stb_image/stb_image.cpp"
+)
 
+# External dependencies
 include(FetchContent)
 
-# Disable building GLFW examples, tests, and docs
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Build GLFW example programs" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "Build GLFW test programs" FORCE)
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "Build GLFW documentation" FORCE)
+# GLFW
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Disable examples" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "Disable tests" FORCE)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "Disable docs" FORCE)
 
 FetchContent_Declare(
     glfw
     GIT_REPOSITORY https://github.com/glfw/glfw.git
-    GIT_TAG        3.3.8  # or latest stable version
+    GIT_TAG        3.3.8
 )
 FetchContent_MakeAvailable(glfw)
 
-
-# Fetch GLFW
-FetchContent_Declare(
-    glfw
-    GIT_REPOSITORY https://github.com/glfw/glfw.git
-    GIT_TAG        3.3.8  # or latest stable version
-)
-FetchContent_MakeAvailable(glfw)
-
-# Fetch ImGui
+# ImGui
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG        v1.89.8 # or latest stable tag
+    GIT_TAG        v1.89.8
 )
 FetchContent_MakeAvailable(imgui)
 
-# ImGui core sources
+# Assimp options — set BEFORE FetchContent_Declare!
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "Disable Assimp tests" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "Disable Assimp tools" FORCE)
+set(ASSIMP_INSTALL OFF CACHE BOOL "No Assimp install" FORCE)
+set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "No debug postfix" FORCE)
+
+FetchContent_Declare(
+    assimp
+    GIT_REPOSITORY https://github.com/assimp/assimp.git
+    GIT_TAG        v6.0.2
+)
+FetchContent_MakeAvailable(assimp)
+
+
 set(IMGUI_SOURCES
     ${imgui_SOURCE_DIR}/imgui.cpp
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
@@ -142,40 +132,33 @@ set(IMGUI_SOURCES
     ${imgui_SOURCE_DIR}/imgui_demo.cpp
 )
 
-# ImGui backend sources for GLFW + OpenGL3
 set(IMGUI_BACKENDS
     ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
 )
 
-# Create ImGui static library
-add_library(imgui STATIC
-    ${IMGUI_SOURCES}
-    ${IMGUI_BACKENDS}
-)
+add_library(imgui STATIC ${IMGUI_SOURCES} ${IMGUI_BACKENDS})
 
 target_include_directories(imgui PUBLIC
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
     ${glfw_SOURCE_DIR}/include
-    "${EXTERNAL_INCLUDE_DIR}/glad"  # Adjust if glad headers are elsewhere
+    "${EXTERNAL_INCLUDE_DIR}/glad"
 )
 
 target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLAD)
-
 target_link_libraries(imgui PUBLIC glfw OpenGL::GL glad_objects)
 
-# Create executable
+# Main executable
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 
 set(RUNTIME_OUTPUT_DIR "${CMAKE_BINARY_DIR}/bin/$<CONFIG>")
-
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${RUNTIME_OUTPUT_DIR}"
 )
 
+# Copy resources
 set(RESOURCE_OUTPUT_DIR "${RUNTIME_OUTPUT_DIR}/res")
-
 set(RESOURCE_TIMESTAMP "${RESOURCE_OUTPUT_DIR}/res_copied.timestamp")
 
 add_custom_command(
@@ -190,18 +173,21 @@ add_custom_command(
 add_custom_target(CopyResources ALL
     DEPENDS "${RESOURCE_TIMESTAMP}"
 )
-
 add_dependencies(${PROJECT_NAME} CopyResources)
 
-target_compile_options(${PROJECT_NAME} PRIVATE ${PROJECT_WARNING_FLAGS})
-
+# Include directories for your project
+# In your target includes:
 target_include_directories(${PROJECT_NAME}
-    PUBLIC 
+    PUBLIC
         "${INCLUDE_DIR}"
         "${EXTERNAL_INCLUDE_DIR}"
         "${EXTERNAL_INCLUDE_DIR}/GLFW"
         "${EXTERNAL_INCLUDE_DIR}/glad"
+        $<TARGET_PROPERTY:assimp::assimp,INTERFACE_INCLUDE_DIRECTORIES>  # Assimp includes
 )
+
+get_target_property(ASSIMP_INCLUDES assimp::assimp INTERFACE_INCLUDE_DIRECTORIES)
+message(STATUS "Assimp include dirs: ${ASSIMP_INCLUDES}")
 
 # Link libraries
 target_link_libraries(${PROJECT_NAME}
@@ -209,9 +195,10 @@ target_link_libraries(${PROJECT_NAME}
         glad_objects
         glfw
         imgui
+        assimp::assimp     # Link assimp target from FetchContent
 )
 
-# Platform-specific linking
+# Platform-specific OpenGL links
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE opengl32)
 elseif(APPLE)
@@ -239,3 +226,6 @@ target_compile_definitions(${PROJECT_NAME}
     PRIVATE
         $<$<CONFIG:Debug>:DEBUG_BUILD>
 )
+
+# Warnings
+target_compile_options(${PROJECT_NAME} PRIVATE ${PROJECT_WARNING_FLAGS})
