@@ -138,7 +138,7 @@ vec3 getSpecularColor() {
 vec3 getEmissionColor() {
     vec3 color = vec3(0.0);
     if (useEmissionMap && numEmissionTextures > 0) {
-        for (int i = 0; i < numEmissionTextures; ++i) {
+        for (int i   = 0; i < numEmissionTextures; ++i) {
             color += texture(material.emission[i], TexCoords).rgb;
         }
         color /= float(numEmissionTextures);

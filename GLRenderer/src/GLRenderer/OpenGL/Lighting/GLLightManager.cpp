@@ -40,7 +40,6 @@ namespace GLRenderer {
         }
     }
 
-
     int GLLightManager::AddLight(std::shared_ptr<ILightSource> light) {
         if (!light) return -1;
 
@@ -70,18 +69,35 @@ namespace GLRenderer {
             return -1;
         }
 
-        int assignedID = nextID_++;
+        // Use a freed ID if available, else use the next incremented ID
+        int assignedID;
+        if (!freeIDs.empty()) {
+            assignedID = freeIDs.front();
+            freeIDs.pop();
+        }
+        else {
+            assignedID = nextLightID++;
+        }
+
         lights_[assignedID] = std::move(light);
         return assignedID;
     }
 
     void GLLightManager::RemoveLight(int id) {
-        lights_.erase(id);
+        auto it = lights_.find(id);
+        if (it != lights_.end()) {
+            lights_.erase(it);
+            freeIDs.push(id); // Recycle this ID
+        }
     }
 
     void GLLightManager::Clear() {
         lights_.clear();
-        nextID_ = 0;
+        nextLightID = 0;
+
+        // Clear recycled IDs
+        std::queue<int> empty;
+        std::swap(freeIDs, empty);
     }
 
     int GLLightManager::GetNumLights(LightType type) const {

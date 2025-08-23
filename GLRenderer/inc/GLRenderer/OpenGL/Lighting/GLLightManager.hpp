@@ -3,6 +3,7 @@
 #include <GLRenderer/Interface/Lighting/ILightManager.hpp>
 #include <unordered_map>
 #include <memory>
+#include <queue>
 
 namespace GLRenderer {
 
@@ -38,7 +39,8 @@ namespace GLRenderer {
 
     private:
         std::unordered_map<int, std::shared_ptr<ILightSource>> lights_;  // store all lights by ID
-        int nextID_ = 0;
+        std::queue<int> freeIDs;
+        int nextLightID = 0;
     };
 
 }

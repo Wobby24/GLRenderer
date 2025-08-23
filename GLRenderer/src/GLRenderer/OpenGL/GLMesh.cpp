@@ -107,9 +107,6 @@ namespace GLRenderer {
             if (!glTex) continue;
             glTex->bind(diffuseCount + specularCount + i);
             shader->setInt("material.emission[" + std::to_string(emissionCount) + "]", diffuseCount + specularCount + i);
-            std::cout << "using a emission texture";
-            int loc = shader->getUniformLocation("material.emission[0]");
-            std::cout << "material.emission[0] location: " << loc << std::endl;
         }
       //  material_->setEmissionIntensity(1.0f);
         shader->setInt("numEmissionTextures", emissionCount);
