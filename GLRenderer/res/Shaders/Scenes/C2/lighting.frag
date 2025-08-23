@@ -111,13 +111,11 @@ void main()
 
 vec3 getDiffuseColor() {
     vec3 color = vec3(0.0);
-    int count = 0;
-    if (useDiffuseMap) {
-        for (int i = 0; i < MAX_TEXTURES_PER_TYPE; ++i) {
+    if (useDiffuseMap && numDiffuseTextures > 0) {
+        for (int i = 0; i < numDiffuseTextures; ++i) {
             color += texture(material.diffuse[i], TexCoords).rgb;
-            count++;
         }
-        color /= float(count);
+        color /= float(numDiffuseTextures);
     } else {
         color = vec3(1.0);
     }
@@ -126,13 +124,11 @@ vec3 getDiffuseColor() {
 
 vec3 getSpecularColor() {
     vec3 color = vec3(0.0);
-    int count = 0;
-    if (useSpecularMap) {
-        for (int i = 0; i < MAX_TEXTURES_PER_TYPE; ++i) {
+    if (useSpecularMap && numSpecularTextures > 0) {
+        for (int i = 0; i < numSpecularTextures; ++i) {
             color += texture(material.specular[i], TexCoords).rgb;
-            count++;
         }
-        color /= float(count);
+        color /= float(numSpecularTextures);
     } else {
         color = vec3(1.0);
     }
@@ -141,13 +137,11 @@ vec3 getSpecularColor() {
 
 vec3 getEmissionColor() {
     vec3 color = vec3(0.0);
-    int count = 0;
-    if (useEmissionMap) {
-        for (int i = 0; i < MAX_TEXTURES_PER_TYPE; ++i) {
+    if (useEmissionMap && numEmissionTextures > 0) {
+        for (int i = 0; i < numEmissionTextures; ++i) {
             color += texture(material.emission[i], TexCoords).rgb;
-            count++;
         }
-        color /= float(count);
+        color /= float(numEmissionTextures);
     }
     return color * material.emissionIntensity;
 }

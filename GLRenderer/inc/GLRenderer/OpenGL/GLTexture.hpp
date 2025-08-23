@@ -41,6 +41,9 @@ namespace GLRenderer {
         void bind(unsigned int slot = 0) const;
         void unbind() const;
 
+        void setVertTexFlip(bool toggle) { isVertFlipped_ = toggle; }
+        bool getVertTexFlip() { return isVertFlipped_; }
+
         bool isCleanedUp() const { return isCleaned_; }
         bool isLoaded() const { return isLoaded_; }
         const std::string& getFilePath() const { return filePath_; }
@@ -62,6 +65,7 @@ namespace GLRenderer {
         std::string filePath_;
         bool isLoaded_ = false;
         bool isCleaned_ = false;
+        bool isVertFlipped_ = false;
         unsigned int id_ = 0;
 
         GLTextureWrap wrapS_ = GLTextureWrap::REPEAT;

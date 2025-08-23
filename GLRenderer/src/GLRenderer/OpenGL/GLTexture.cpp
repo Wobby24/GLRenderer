@@ -83,7 +83,7 @@ namespace GLRenderer {
 	}
 
 	void GLTexture2D::loadTexture() {
-		stbi_set_flip_vertically_on_load(true);
+		stbi_set_flip_vertically_on_load(isVertFlipped_);
 
 		// 1. Extract and load data with stb_image
 		int width, height, nrChannels;

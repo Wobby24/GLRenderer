@@ -73,49 +73,16 @@ in vec3 FragPos;
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 diffuseColor, vec3 specularColor);
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 diffuseColor, vec3 specularColor);
 vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 diffuseColor, vec3 specularColor);
+//color sampling functions
+vec3 getDiffuseColor();
+vec3 getSpecularColor();
+vec3 getEmissionColor();
 
 void main()
 {
-    vec3 diffuseColor = vec3(1.0);
-    vec3 specularColor = vec3(1.0);
-    vec3 emission = vec3(0.0);
-
-    // Blend active diffuse maps
-    if (useDiffuseMap && numDiffuseTextures > 0) {
-        diffuseColor = vec3(0.0);
-        for (int i = 0; i < MAX_TEXTURES; ++i) {
-            if (i >= numDiffuseTextures) break;
-            diffuseColor += texture(material.diffuse[i], TexCoords).rgb;
-        }
-        diffuseColor /= float(numDiffuseTextures);
-    }
-
-    // Blend active specular maps
- //   if (useSpecularMap && numSpecularTextures > 0) {
-    //    specularColor = vec3(0.0);
-     //   for (int i = 0; i < MAX_TEXTURES; ++i) {
-      //      if (i >= numSpecularTextures) break;
-       //     specularColor += texture(material.specular[i], TexCoords).rgb;
-      //  }
-       // specularColor /= float(numSpecularTextures);
-   // }
-
-   if (useSpecularMap && numSpecularTextures > 0) {
-    specularColor = texture(material.specular[0], TexCoords).rrr; // only red channel replicated across RGB
-} else {
-    specularColor = vec3(1.0);
-}
-
-
-    // Blend active emission maps
-    if (useEmissionMap && numEmissionTextures > 0) {
-        emission = vec3(0.0);
-        for (int i = 0; i < MAX_TEXTURES; ++i) {
-            if (i >= numEmissionTextures) break;
-            emission += texture(material.emission[i], TexCoords).rgb;
-        }
-        emission = (emission / float(numEmissionTextures)) * material.emissionIntensity;
-    }
+    vec3 diffuseColor = getDiffuseColor();
+    vec3 specularColor = getSpecularColor();
+    vec3 emission = getEmissionColor();
 
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
@@ -136,15 +103,51 @@ void main()
         if (i >= numSpotLights) break;
         result += CalcSpotLight(spotLights[i], norm, FragPos, viewDir, diffuseColor, specularColor);
     }
-    emission = vec3(0.0);
 
     result += emission;
 
-
     FragColor = vec4(result, 1.0);
-
-   //FragColor = vec4(1.0, 0.0, 1.0, 1.0); // bright pink for visibility
 }
+ 
+vec3 getDiffuseColor() {
+    vec3 color = vec3(0.0);
+    if (useDiffuseMap && numDiffuseTextures > 0) {
+        for (int i = 0; i < numDiffuseTextures; ++i) {
+            color += texture(material.diffuse[i], TexCoords).rgb;
+        }
+        color /= float(numDiffuseTextures);
+    } else {
+        color = vec3(1.0);
+    }
+    return color;
+}
+
+vec3 getSpecularColor() {
+    vec3 color = vec3(0.0);
+    if (useSpecularMap && numSpecularTextures > 0) {
+        for (int i = 0; i < numSpecularTextures; ++i) {
+            color += texture(material.specular[i], TexCoords).rgb;
+        }
+        color /= float(numSpecularTextures);
+    } else {
+        color = vec3(1.0);
+    }
+    return color;
+}
+
+vec3 getEmissionColor() {
+    vec3 color = vec3(0.0);
+    if (useEmissionMap && numEmissionTextures > 0) {
+        for (int i = 0; i < numEmissionTextures; ++i) {
+            color += texture(material.emission[i], TexCoords).rgb;
+        }
+        color /= float(numEmissionTextures);
+        color *= material.emissionIntensity;
+    } else {
+        color = vec3(1.0, 0.0, 1.0); // magenta fallback
+    }
+    return color;
+} 
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 diffuseColor, vec3 specularColor) {
     vec3 lightDir = normalize(-light.direction);

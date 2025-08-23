@@ -477,6 +477,15 @@ namespace GLRenderer {
         containerMat_.addDiffuseTexture(std::make_shared<GLTexture2D>(containerDiffuse_));
         containerMat_.addSpecularTexture(std::make_shared<GLTexture2D>(containerSpecular_));
         containerMat_.addEmissionTexture(std::make_shared<GLTexture2D>(containerEmission_));
+
+        lightingShader_.setInt("numDiffuseTextures", 1);
+        lightingShader_.setInt("numSpecularTextures", 1);
+        lightingShader_.setInt("numEmissionTextures", 1);
+
+        lightingShader_.setBool("useDiffuseMap", true);
+        lightingShader_.setBool("useSpecularMap", true);
+        lightingShader_.setBool("useEmissionMap", true);
+        
         //shininess
         float containerShininess = 64.0f;
         containerMat_.setShininess(containerShininess);

@@ -1,4 +1,5 @@
 #include <GLRenderer/OpenGL/GLModel.hpp>
+#include <GLRenderer/OpenGL/GLTexture.hpp>
 
 namespace GLRenderer {
 
@@ -104,7 +105,7 @@ namespace GLRenderer {
 		auto diffuseMaps = loadMaterialTextures(aiMat, aiTextureType_DIFFUSE, TextureType::DIFFUSE);
 		auto specularMaps = loadMaterialTextures(aiMat, aiTextureType_SPECULAR, TextureType::SPECULAR);
 		auto normalMaps = loadMaterialTextures(aiMat, aiTextureType_NORMALS, TextureType::NORMAL);
-		auto emissionMaps = loadMaterialTextures(aiMat, aiTextureType_AMBIENT, TextureType::EMISSION);
+		auto emissionMaps = loadMaterialTextures(aiMat, aiTextureType_EMISSIVE, TextureType::EMISSION);
 
 		auto material = std::make_shared<GLMaterial>();
 		material->setDiffuseTextures(diffuseMaps);
@@ -139,6 +140,7 @@ namespace GLRenderer {
 			if (!skip) {
 				auto texture = std::make_shared<GLTexture2D>(texturePath, glType);
 				try {
+					texture->setVertTexFlip(false);
 					texture->loadTexture();
 					textures.push_back(texture);
 					texturesLoaded_.push_back(texture);

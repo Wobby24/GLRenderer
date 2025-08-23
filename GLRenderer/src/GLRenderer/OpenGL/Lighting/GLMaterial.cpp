@@ -18,43 +18,49 @@ namespace GLRenderer {
 
         // Bind Diffuse Textures
         if (!diffuseMaps_.empty()) {
-            glShader->setInt("useDiffuseMapCount", static_cast<int>(diffuseMaps_.size()));
+            glShader->setInt("numDiffuseTextures", static_cast<int>(diffuseMaps_.size()));
             for (size_t i = 0; i < diffuseMaps_.size(); ++i) {
                 int texUnit = static_cast<int>(i);
                 glShader->setInt(("material.diffuse[" + std::to_string(i) + "]").c_str(), texUnit);
                 diffuseMaps_[i]->bind(texUnit);
             }
+            glShader->setBool("useDiffuseMap", true);
         }
         else {
-            glShader->setInt("useDiffuseMapCount", 0);
+            glShader->setInt("numDiffuseTextures", 0);
+            glShader->setBool("useDiffuseMap", false);
         }
 
         // Bind Specular Textures
         if (!specularMaps_.empty()) {
-            glShader->setInt("useSpecularMapCount", static_cast<int>(specularMaps_.size()));
+            glShader->setInt("numSpecularTextures", static_cast<int>(specularMaps_.size()));
             for (size_t i = 0; i < specularMaps_.size(); ++i) {
                 int texUnit = static_cast<int>(diffuseMaps_.size() + i); // Avoid overlapping units
                 glShader->setInt(("material.specular[" + std::to_string(i) + "]").c_str(), texUnit);
                 specularMaps_[i]->bind(texUnit);
             }
+            glShader->setBool("useSpecularMap", true);
         }
         else {
-            glShader->setInt("useSpecularMapCount", 0);
+            glShader->setInt("numSpecularTextures", 0);
+            glShader->setBool("useSpecularMap", false);
         }
 
         // Bind Emissive Textures
         if (!emissionMaps_.empty()) {
-            glShader->setInt("useEmissionMapCount", static_cast<int>(emissionMaps_.size()));
+            glShader->setInt("numEmissionTextures", static_cast<int>(emissionMaps_.size()));
             for (size_t i = 0; i < emissionMaps_.size(); ++i) {
                 int texUnit = static_cast<int>(diffuseMaps_.size() + specularMaps_.size() + i);
                 glShader->setInt(("material.emission[" + std::to_string(i) + "]").c_str(), texUnit);
-                glShader->setFloat("material.emissionIntensity", emissionIntensity);
                 emissionMaps_[i]->bind(texUnit);
             }
+            glShader->setFloat("material.emissionIntensity", emissionIntensity_);
+            glShader->setBool("useEmissionMap", true);
         }
         else {
-            glShader->setInt("useEmissionMapCount", 0);
+            glShader->setInt("numEmissionTextures", 0);
             glShader->setFloat("material.emissionIntensity", 0.0f);
+            glShader->setBool("useEmissionMap", false);
         }
 
         // Set shininess regardless

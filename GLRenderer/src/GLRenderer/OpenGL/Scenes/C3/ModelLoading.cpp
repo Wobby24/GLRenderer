@@ -448,7 +448,7 @@ namespace GLRenderer {
     }
 
     void ModelLoading::SetupModel() {
-        backpack_ = std::make_unique<GLModel>("res/Models/backpack/backpack.obj");
+        backpack_ = std::make_unique<GLModel>("res/Models/DamagedHelmet/DamagedHelmet.gltf");
         backpack_->Init();
     }
 
@@ -491,13 +491,6 @@ namespace GLRenderer {
         }
 
         view_ = camera_.get()->getViewMatrix();
-//
-     //   view_ = glm::lookAt(
-       //     glm::vec3(0.0f, 0.0f, 3.0f),  // camera pos
-       //     glm::vec3(0.0f, 0.0f, 0.0f),  // look at origin
-       //     glm::vec3(0.0f, 1.0f, 0.0f)   // up
-     //   );
-
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -520,7 +513,7 @@ namespace GLRenderer {
         lightingShader_.setFloat("material.shininess", 32.0f);
         
         glm::mat4 model = glm::mat4(1.0);
-      //  model = glm::scale(model, glm::vec3(1.0f));
+        model = glm::scale(model, glm::vec3(1.0f));
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         lightingShader_.setMat4("model", model);
         backpack_->Draw(lightingShader_);
