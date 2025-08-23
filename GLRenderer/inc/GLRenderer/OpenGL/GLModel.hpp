@@ -25,7 +25,7 @@ namespace GLRenderer {
 	private:
 		// model data
 		std::vector<GLMesh> meshes_;
-		std::vector<std::shared_ptr<GLTexture2D>> texturesLoaded_;
+	//	std::vector<std::shared_ptr<GLTexture2D>> texturesLoaded_; textuer cache handles this
 		std::string directory_;
 		std::string path_;
 

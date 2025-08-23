@@ -1,5 +1,7 @@
 #include <GLRenderer/OpenGL/GLModel.hpp>
 #include <GLRenderer/OpenGL/GLTexture.hpp>
+#include <GLRenderer/OpenGL/GLTextureCache.hpp>
+
 
 namespace GLRenderer {
 
@@ -128,26 +130,13 @@ namespace GLRenderer {
 			mat->GetTexture(aiType, i, &str);
 			std::string texturePath = directory_ + "/" + std::string(str.C_Str());
 
-			bool skip = false;
-			for (const auto& loadedTex : texturesLoaded_) {
-				if (loadedTex->getFilePath() == texturePath) {
-					textures.push_back(loadedTex);
-					skip = true;
-					break;
-				}
+			try {
+				auto texture = GLTextureCache::LoadOrGet(texturePath, glType);
+				texture->setVertTexFlip(false); // Optional
+				textures.push_back(texture);
 			}
-
-			if (!skip) {
-				auto texture = std::make_shared<GLTexture2D>(texturePath, glType);
-				try {
-					texture->setVertTexFlip(false);
-					texture->loadTexture();
-					textures.push_back(texture);
-					texturesLoaded_.push_back(texture);
-				}
-				catch (const std::exception& e) {
-					std::cerr << "Failed to load texture: " << texturePath << "\nReason: " << e.what() << "\n";
-				}
+			catch (const std::exception& e) {
+				std::cerr << "Failed to load texture: " << texturePath << "\nReason: " << e.what() << "\n";
 			}
 		}
 
