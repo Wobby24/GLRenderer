@@ -19,7 +19,9 @@ namespace GLRenderer {
 
     private:
         GLCameraInputContext& context_;
-        GLFWwindow* window_ = nullptr;
+        GLFWwindow* window_ = nullptr; 
+        int lastCursorMode_ = GLFW_CURSOR_NORMAL;  // Or init from glfwGetInputMode(window_, GLFW_CURSOR)
+        void UpdateCursorMode();
     };
 }
 

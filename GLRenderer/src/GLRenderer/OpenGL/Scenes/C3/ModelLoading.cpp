@@ -512,23 +512,12 @@ namespace GLRenderer {
         lightingShader_.setVec3("viewPos", camera_.get()->getAttributes().position);
         lightingShader_.setFloat("material.shininess", 32.0f);
         
-          glm::mat4 model = glm::mat4(1.0);
-      //  model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-      //  model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-      //  model = glm::scale(model, glm::vec3(1.0f));
-      //  lightingShader_.setMat4("model", model);
-       // backpack_->Draw(lightingShader_);
-
-          for (int row = 0; row < 10; ++row) {
-              for (int col = 0; col < 10; ++col) {
-                  model = glm::mat4(1.0f);
-                  model = glm::translate(model, glm::vec3(2 * col, 0.0f, 5 * row));
-                  model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-                  model = glm::scale(model, glm::vec3(1.0f));
-                  lightingShader_.setMat4("model", model);
-                  backpack_->DrawOptimized(lightingShader_);
-              }
-          }
+        glm::mat4 model = glm::mat4(1.0);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(1.0f));
+        lightingShader_.setMat4("model", model);
+        backpack_->Draw(lightingShader_);
 
         lightMesh_.Bind();
 

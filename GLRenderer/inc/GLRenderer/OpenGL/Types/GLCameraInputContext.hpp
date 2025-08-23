@@ -8,6 +8,7 @@ namespace GLRenderer {
         float lastX = 0.0f;
         float lastY = 0.0f;
         bool firstMouse = true;
+        bool ignoreNextMouseDelta = false;
     };
 }
 

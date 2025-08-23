@@ -20,34 +20,42 @@ namespace GLRenderer {
         // --- REQUIRED FOR IMGUI TEXT INPUT ---
         glfwSetCharCallback(window_, ImGui_ImplGlfw_CharCallback);
 
-
         // Mouse movement
         glfwSetCursorPosCallback(window_, [](GLFWwindow* win, double xpos, double ypos) {
-            //imgui
             ImGui_ImplGlfw_CursorPosCallback(win, xpos, ypos);
 
-            // Check if the mouse is locked
-            if (glfwGetInputMode(win, GLFW_CURSOR) == GLFW_CURSOR_DISABLED) {
-                // Cursor is locked, allow app to use input even if ImGui wants it
-            }
-            else if (ImGui::GetIO().WantCaptureMouse) {
-                return; // Let ImGui handle it, don't process input
+            if (glfwGetInputMode(win, GLFW_CURSOR) != GLFW_CURSOR_DISABLED &&
+                ImGui::GetIO().WantCaptureMouse) {
+                return;
             }
 
             auto* ctx = static_cast<GLCameraInputContext*>(glfwGetWindowUserPointer(win));
             if (!ctx || !ctx->camera) return;
 
+            if (ctx->ignoreNextMouseDelta) {
+                ctx->ignoreNextMouseDelta = false;
+                return;
+            }
+
             float x = static_cast<float>(xpos);
             float y = static_cast<float>(ypos);
 
             if (ctx->firstMouse) {
-                ctx->lastX = x;
-                ctx->lastY = y;
+                // This event is likely from the old mouse position (before locking)
                 ctx->firstMouse = false;
+
+                // Force mouse to center again, in case it hasn't yet
+                int width, height;
+                glfwGetWindowSize(win, &width, &height);
+                glfwSetCursorPos(win, width / 2.0, height / 2.0);
+                ctx->lastX = width / 2.0f;
+                ctx->lastY = height / 2.0f;
+
+                return;
             }
 
             float xoffset = x - ctx->lastX;
-            float yoffset = ctx->lastY - y; // Reversed y
+            float yoffset = ctx->lastY - y; // Reversed
 
             ctx->lastX = x;
             ctx->lastY = y;
@@ -103,6 +111,35 @@ namespace GLRenderer {
             });
     }
 
+    void GLSceneInputHandler::UpdateCursorMode() {
+        if (!window_) return;
+
+        int currentMode = glfwGetInputMode(window_, GLFW_CURSOR);
+        if (currentMode != lastCursorMode_) {
+            lastCursorMode_ = currentMode;
+
+            int width, height;
+            glfwGetWindowSize(window_, &width, &height);
+
+            if (currentMode == GLFW_CURSOR_DISABLED) {
+                // Cursor just got locked — reset mouse input state to center
+                context_.ignoreNextMouseDelta = true;
+                glfwSetCursorPos(window_, width / 2.0, height / 2.0);
+                context_.lastX = width / 2.0f;
+                context_.lastY = height / 2.0f;
+            }
+            else if (currentMode == GLFW_CURSOR_NORMAL) {
+                // Cursor just got unlocked — reset mouse input state to current cursor pos
+                double xpos, ypos;
+                glfwGetCursorPos(window_, &xpos, &ypos);
+
+                context_.ignoreNextMouseDelta = true;
+                context_.lastX = static_cast<float>(xpos);
+                context_.lastY = static_cast<float>(ypos);
+            }
+        }
+    }
+
     void GLSceneInputHandler::UnregisterCallbacks(GLFWwindow* window) {
         if (window == window_) {
             glfwSetCursorPosCallback(window_, nullptr);
@@ -116,6 +153,8 @@ namespace GLRenderer {
         if (!window_ || !context_.camera) return;
 
         if (ImGui::GetIO().WantCaptureKeyboard) return;
+
+        UpdateCursorMode();
 
         if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS)
             context_.camera->processKeyboard(FORWARD, deltaTime);
