@@ -22,10 +22,11 @@ namespace GLRenderer {
 		void Cleanup();
 
 		void Draw(IShader& shader) override;
+		void DrawOptimized(IShader& shader);
 	private:
 		// model data
 		std::vector<GLMesh> meshes_;
-	//	std::vector<std::shared_ptr<GLTexture2D>> texturesLoaded_; textuer cache handles this
+		std::unordered_map<std::string, std::shared_ptr<GLMaterial>> materialCache_;
 		std::string directory_;
 		std::string path_;
 

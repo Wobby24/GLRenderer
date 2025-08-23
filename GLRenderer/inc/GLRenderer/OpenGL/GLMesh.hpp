@@ -3,6 +3,7 @@
 #include "GLRenderer/Interface/IMesh.hpp"
 #include "Lighting/GLMaterial.hpp"
 #include "GLMeshBuffers.hpp"
+#include "GLTextureBinder.hpp"
 #include "GLShader.hpp"   // Implements IShader
 
 #include <glad/glad.h>
@@ -31,9 +32,13 @@ namespace GLRenderer {
         void Init();              // Creates VAO, VBO, EBO
         void Cleanup();           // Deletes GL resources
         void Draw(IShader& shader) override;
+        void Draw(IShader& shaderBase, GLTextureBinder& binder);
 
         const std::vector<Vertex>& GetVertices() const override { return vertices_; }
         const std::vector<unsigned int>& GetIndices() const override { return indices_; }
+
+        void DrawWithoutBinding() { drawWithoutBinding(); }
+        void BindMaterialTextures(IShader& shaderBase, GLTextureBinder& binder) { bindMaterialTextures(shaderBase, binder); }
 
         // Since textures are handled by material now, this returns empty or can be removed
         const std::vector<std::shared_ptr<ITexture>>& GetTextures() const override {
@@ -56,6 +61,7 @@ namespace GLRenderer {
         bool isCleanedUp_ = false;
 
         void setupMesh();
+        void drawWithoutBinding();
+        void bindMaterialTextures(IShader& shaderBase, GLTextureBinder& binder);
     };
-
 }

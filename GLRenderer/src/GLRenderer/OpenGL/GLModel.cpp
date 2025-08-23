@@ -30,6 +30,27 @@ namespace GLRenderer {
 			mesh.Draw(shader);
 	}
 
+	void GLModel::DrawOptimized(IShader& shader) {
+		std::unordered_map<std::shared_ptr<GLMaterial>, std::vector<GLMesh*>> materialGroups;
+
+		for (auto& mesh : meshes_) {
+			if (mesh.GetMaterial()) {
+				materialGroups[mesh.GetMaterial()].push_back(&mesh);
+			}
+		}
+		GLTextureBinder binder;
+
+		for (auto& [material, groupMeshes] : materialGroups) {
+			if (groupMeshes.empty()) continue;
+
+			groupMeshes[0]->BindMaterialTextures(shader, binder);
+
+			for (auto* mesh : groupMeshes) {
+				mesh->DrawWithoutBinding();
+			}
+		}
+	}
+
 	void GLModel::loadModel(const std::string& path) {
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(path,
@@ -109,11 +130,30 @@ namespace GLRenderer {
 		auto normalMaps = loadMaterialTextures(aiMat, aiTextureType_NORMALS, TextureType::NORMAL);
 		auto emissionMaps = loadMaterialTextures(aiMat, aiTextureType_EMISSIVE, TextureType::EMISSION);
 
-		auto material = std::make_shared<GLMaterial>();
-		material->setDiffuseTextures(diffuseMaps);
-		material->setSpecularTextures(specularMaps);
-		//material->setNormalTextures(normalMaps);
-		material->setEmissionTextures(emissionMaps);
+		// Create a unique key for the material based on texture paths
+		std::string materialKey;
+		for (const auto& tex : diffuseMaps)  materialKey += tex->getFilePath() + "|";
+		for (const auto& tex : specularMaps) materialKey += tex->getFilePath() + "|";
+		for (const auto& tex : emissionMaps) materialKey += tex->getFilePath() + "|";
+		// (You can also include normalMaps if you want)
+
+		std::shared_ptr<GLMaterial> material;
+
+		// Check if the material already exists
+		auto it = materialCache_.find(materialKey);
+		if (it != materialCache_.end()) {
+			material = it->second;  // Reuse existing material
+		}
+		else {
+			// Create new material and cache it
+			material = std::make_shared<GLMaterial>();
+			material->setDiffuseTextures(diffuseMaps);
+			material->setSpecularTextures(specularMaps);
+			// material->setNormalTextures(normalMaps); // uncomment if you want to use normal maps
+			material->setEmissionTextures(emissionMaps);
+
+			materialCache_[materialKey] = material;
+		}
 
 		return GLMesh(vertices, indices, material);
 	}
