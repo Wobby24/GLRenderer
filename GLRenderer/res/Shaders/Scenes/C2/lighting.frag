@@ -1,14 +1,16 @@
 #version 460 core
 out vec4 FragColor;
 
+#define MAX_TEXTURES_PER_TYPE 8
 #define MAX_DIR_LIGHTS 16
 #define MAX_POINT_LIGHTS 16
 #define MAX_SPOT_LIGHTS 16
+#define MAX_TEXTURES 8
 
 struct Material {
-    sampler2D diffuse;
-    sampler2D specular;
-    sampler2D emission;
+    sampler2D diffuse[MAX_TEXTURES];
+    sampler2D specular[MAX_TEXTURES];
+    sampler2D emission[MAX_TEXTURES];
     float shininess;
     float emissionIntensity;
 };
@@ -50,6 +52,11 @@ uniform int numDirLights;
 uniform int numSpotLights;
 uniform int numPointLights;
 
+// Number of active textures for each type
+uniform int numDiffuseTextures;
+uniform int numSpecularTextures;
+uniform int numEmissionTextures;
+
 uniform DirLight dirLights[MAX_DIR_LIGHTS];
 uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 uniform PointLight pointLights[MAX_POINT_LIGHTS];
@@ -71,11 +78,16 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 diffuseColor, 
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 diffuseColor, vec3 specularColor);
 vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 diffuseColor, vec3 specularColor);
 
+//color sampling functions
+vec3 getDiffuseColor();
+vec3 getSpecularColor();
+vec3 getEmissionColor();
+
 void main()
 {
-    vec3 diffuseColor = useDiffuseMap ? texture(material.diffuse, TexCoords).rgb : vec3(1.0);
-    vec3 specularColor = useSpecularMap ? texture(material.specular, TexCoords).rgb : vec3(1.0);
-    vec3 emission = (useEmissionMap ? texture(material.emission, TexCoords).rgb : vec3(0.0)) * material.emissionIntensity;
+    vec3 diffuseColor = getDiffuseColor();
+    vec3 specularColor = getSpecularColor();
+    vec3 emission = getEmissionColor();
 
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
@@ -95,6 +107,49 @@ void main()
     result += emission;
 
     FragColor = vec4(result, 1.0);
+}
+
+vec3 getDiffuseColor() {
+    vec3 color = vec3(0.0);
+    int count = 0;
+    if (useDiffuseMap) {
+        for (int i = 0; i < MAX_TEXTURES_PER_TYPE; ++i) {
+            color += texture(material.diffuse[i], TexCoords).rgb;
+            count++;
+        }
+        color /= float(count);
+    } else {
+        color = vec3(1.0);
+    }
+    return color;
+}
+
+vec3 getSpecularColor() {
+    vec3 color = vec3(0.0);
+    int count = 0;
+    if (useSpecularMap) {
+        for (int i = 0; i < MAX_TEXTURES_PER_TYPE; ++i) {
+            color += texture(material.specular[i], TexCoords).rgb;
+            count++;
+        }
+        color /= float(count);
+    } else {
+        color = vec3(1.0);
+    }
+    return color;
+}
+
+vec3 getEmissionColor() {
+    vec3 color = vec3(0.0);
+    int count = 0;
+    if (useEmissionMap) {
+        for (int i = 0; i < MAX_TEXTURES_PER_TYPE; ++i) {
+            color += texture(material.emission[i], TexCoords).rgb;
+            count++;
+        }
+        color /= float(count);
+    }
+    return color * material.emissionIntensity;
 }
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 diffuseColor, vec3 specularColor) {

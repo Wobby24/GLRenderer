@@ -16,34 +16,44 @@ namespace GLRenderer {
 
         glShader->use();
 
-        // ==== Diffuse ====
-        if (hasDiffuseTexture()) {
-            glShader->setInt("useDiffuseMap", 1);
-            glShader->setInt("material.diffuse", 0);  // Texture unit 0
-            diffuseMap_->bind(0);
-        } else {
-            glShader->setInt("useDiffuseMap", 0);
-        }
-
-        // ==== Specular ====
-        if (hasSpecularTexture()) {
-            glShader->setInt("useSpecularMap", 1);
-            glShader->setInt("material.specular", 1); // Texture unit 1
-            specularMap_->bind(1);
+        // Bind Diffuse Textures
+        if (!diffuseMaps_.empty()) {
+            glShader->setInt("useDiffuseMapCount", static_cast<int>(diffuseMaps_.size()));
+            for (size_t i = 0; i < diffuseMaps_.size(); ++i) {
+                int texUnit = static_cast<int>(i);
+                glShader->setInt(("material.diffuse[" + std::to_string(i) + "]").c_str(), texUnit);
+                diffuseMaps_[i]->bind(texUnit);
+            }
         }
         else {
-            glShader->setInt("useSpecularMap", 0);
+            glShader->setInt("useDiffuseMapCount", 0);
         }
 
-        // ==== Emissive ====
-        if (hasEmissiveTexture()) {
-            glShader->setInt("useEmissionMap", 1);
-            glShader->setInt("material.emission", 2);
-            glShader->setFloat("material.emissionIntensity", emissionIntensity);
-            emissiveMap_->bind(2);
+        // Bind Specular Textures
+        if (!specularMaps_.empty()) {
+            glShader->setInt("useSpecularMapCount", static_cast<int>(specularMaps_.size()));
+            for (size_t i = 0; i < specularMaps_.size(); ++i) {
+                int texUnit = static_cast<int>(diffuseMaps_.size() + i); // Avoid overlapping units
+                glShader->setInt(("material.specular[" + std::to_string(i) + "]").c_str(), texUnit);
+                specularMaps_[i]->bind(texUnit);
+            }
         }
         else {
-            glShader->setInt("useEmissionMap", 0);
+            glShader->setInt("useSpecularMapCount", 0);
+        }
+
+        // Bind Emissive Textures
+        if (!emissionMaps_.empty()) {
+            glShader->setInt("useEmissionMapCount", static_cast<int>(emissionMaps_.size()));
+            for (size_t i = 0; i < emissionMaps_.size(); ++i) {
+                int texUnit = static_cast<int>(diffuseMaps_.size() + specularMaps_.size() + i);
+                glShader->setInt(("material.emission[" + std::to_string(i) + "]").c_str(), texUnit);
+                glShader->setFloat("material.emissionIntensity", emissionIntensity);
+                emissionMaps_[i]->bind(texUnit);
+            }
+        }
+        else {
+            glShader->setInt("useEmissionMapCount", 0);
             glShader->setFloat("material.emissionIntensity", 0.0f);
         }
 
@@ -51,39 +61,40 @@ namespace GLRenderer {
         glShader->setFloat("material.shininess", shininess_);
     }
 
-
-    void GLMaterial::setDiffuseTexture(std::shared_ptr<GLTexture2D> texture) {
-        diffuseMap_ = texture;
+    void GLMaterial::addDiffuseTexture(std::shared_ptr<GLTexture2D> texture) {
+        if (diffuseMaps_.size() >= MAX_TEXTURES_PER_TYPE) {
+            throw std::runtime_error("GLMaterial::addDiffuseTexture: Max texture limit for diffuse has already been reached! Cannot add new texture!");
+        }
+        else
+            diffuseMaps_.push_back(std::move(texture));
     }
 
-    void GLMaterial::setSpecularTexture(std::shared_ptr<GLTexture2D> texture) {
-        specularMap_ = texture;
+    void GLMaterial::addSpecularTexture(std::shared_ptr<GLTexture2D> texture) {
+        if (specularMaps_.size() >= MAX_TEXTURES_PER_TYPE) {
+            throw std::runtime_error("GLMaterial::addSpecularTexture: Max texture limit for specular has already been reached! Cannot add new texture!");
+        }
+        else
+            specularMaps_.push_back(std::move(texture));
     }
 
-    void GLMaterial::setEmissiveTexture(std::shared_ptr<GLTexture2D> texture) {
-        emissiveMap_ = texture;
+    void GLMaterial::addEmissionTexture(std::shared_ptr<GLTexture2D> texture) {
+        if (emissionMaps_.size() >= MAX_TEXTURES_PER_TYPE) {
+            throw std::runtime_error("GLMaterial::addEmissiveTexture: Max texture limit for emission has already been reached! Cannot add new texture!");
+        }
+        else
+            emissionMaps_.push_back(std::move(texture));
     }
 
-    void GLMaterial::setupProperties(
-        std::shared_ptr<GLTexture2D> diffuseTexture,
-        std::shared_ptr<GLTexture2D> specularTexture,
-        std::shared_ptr<GLTexture2D> emissiveTexture
-    ) {
-        setDiffuseTexture(diffuseTexture);
-        setSpecularTexture(specularTexture);
-        setEmissiveTexture(emissiveTexture);
+    void GLMaterial::setDiffuseTextures(const std::vector<std::shared_ptr<GLTexture2D>>& textures) {
+        diffuseMaps_ = textures;
     }
 
-    bool GLMaterial::hasDiffuseTexture() const {
-        return diffuseMap_ != nullptr;
+    void GLMaterial::setSpecularTextures(const std::vector<std::shared_ptr<GLTexture2D>>& textures) {
+        specularMaps_ = textures;
     }
 
-    bool GLMaterial::hasSpecularTexture() const {
-        return specularMap_ != nullptr;
-    }
-
-    bool GLMaterial::hasEmissiveTexture() const {
-        return emissiveMap_ != nullptr;
+    void GLMaterial::setEmissionTextures(const std::vector<std::shared_ptr<GLTexture2D>>& textures) {
+        emissionMaps_ = textures;
     }
 
     void GLMaterial::setShininess(float shininess) {
@@ -98,28 +109,28 @@ namespace GLRenderer {
         return shininess_;
     }
 
-    std::shared_ptr<GLTexture2D>& GLMaterial::getDiffuseTexture() {
-        return diffuseMap_;
+    std::vector<std::shared_ptr<GLTexture2D>>& GLMaterial::getDiffuseTextures() {
+        return diffuseMaps_;
     }
 
-    std::shared_ptr<const GLTexture2D> GLMaterial::getDiffuseTexture() const {
-        return diffuseMap_;
+    const std::vector<std::shared_ptr<GLTexture2D>>& GLMaterial::getDiffuseTextures() const {
+        return diffuseMaps_;
     }
 
-    std::shared_ptr<GLTexture2D>& GLMaterial::getSpecularTexture() {
-        return specularMap_;
+    std::vector<std::shared_ptr<GLTexture2D>>& GLMaterial::getSpecularTextures() {
+        return specularMaps_;
     }
 
-    std::shared_ptr<const GLTexture2D> GLMaterial::getSpecularTexture() const {
-        return specularMap_;
+    const std::vector<std::shared_ptr<GLTexture2D>>& GLMaterial::getSpecularTextures() const {
+        return specularMaps_;
     }
 
-    std::shared_ptr<GLTexture2D>& GLMaterial::getEmissiveTexture() {
-        return emissiveMap_;
+    std::vector<std::shared_ptr<GLTexture2D>>& GLMaterial::getEmissionTextures() {
+        return emissionMaps_;
     }
 
-    std::shared_ptr<const GLTexture2D> GLMaterial::getEmissiveTexture() const {
-        return emissiveMap_;
+    const std::vector<std::shared_ptr<GLTexture2D>>& GLMaterial::getEmissionTextures() const {
+        return emissionMaps_;
     }
 
 }

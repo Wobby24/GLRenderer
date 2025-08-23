@@ -25,7 +25,7 @@ namespace GLRenderer {
 	private:
 		// model data
 		std::vector<GLMesh> meshes_;
-		std::vector<std::shared_ptr<ITexture>> texturesLoaded_;
+		std::vector<std::shared_ptr<GLTexture2D>> texturesLoaded_;
 		std::string directory_;
 		std::string path_;
 
@@ -35,7 +35,8 @@ namespace GLRenderer {
 		void loadModel(const std::string& path);
 		void processNode(aiNode* node, const aiScene* scene);
 		GLMesh processMesh(aiMesh* mesh, const aiScene* scene);
-		std::vector<std::shared_ptr<ITexture>> loadMaterialTextures(
+		std::vector<std::shared_ptr<GLTexture2D>>
+			loadMaterialTextures(
 			aiMaterial* mat,
 			aiTextureType aiType,
 			GLRenderer::TextureType glType);

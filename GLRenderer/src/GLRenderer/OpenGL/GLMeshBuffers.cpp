@@ -3,6 +3,8 @@
 #include <GLRenderer/Interface/Types/VertexAttribFlagsOperators.hpp>
 #include <glad/glad.h>
 
+//change attrib order from pos tex normal to pos normal tex; better packing/padding
+
 namespace GLRenderer {
 
 	//destructor is default since we need explicit control over the mesh buffers
@@ -43,15 +45,15 @@ namespace GLRenderer {
 			glEnableVertexAttribArray(0);
 		}
 
-		if (HasFlag(attributes, VertexAttribFlags::TEXCOORDS)) {
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Vertex::texCoords));
-			glEnableVertexAttribArray(1);
-		} 
-
 		if (HasFlag(attributes, VertexAttribFlags::NORMAL)) {
-			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Vertex::normal));
-			glEnableVertexAttribArray(2);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Vertex::normal));
+			glEnableVertexAttribArray(1);
 		}
+
+		if (HasFlag(attributes, VertexAttribFlags::TEXCOORDS)) {
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Vertex::texCoords));
+			glEnableVertexAttribArray(2);
+		} 
 	}
 
 	void GLMeshBuffers::Cleanup() {

@@ -1,25 +1,30 @@
 #pragma once
+
 #include "GLRenderer/Interface/IMesh.hpp"
-#include "GLRenderer/Interface/ITexture.hpp"
+#include "Lighting/GLMaterial.hpp"
 #include "GLMeshBuffers.hpp"
 #include "GLShader.hpp"   // Implements IShader
 
 #include <glad/glad.h>
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <vector>
 
 namespace GLRenderer {
+
     class GLMesh : public IMesh {
     public:
+        // Constructor with vertices, indices, and material
         GLMesh(const std::vector<Vertex>& vertices,
             const std::vector<unsigned int>& indices,
-            const std::vector<std::shared_ptr<ITexture>>& textures);
+            std::shared_ptr<GLMaterial> material);
 
-        GLMesh(const std::vector<Vertex>& vertices, 
-            const std::vector<std::shared_ptr<ITexture>>& textures);
-       
-        GLMesh(const std::vector<Vertex>& vertices);
+        // Constructor with vertices and material (no indices)
+        GLMesh(const std::vector<Vertex>& vertices,
+            std::shared_ptr<GLMaterial> material);
+
+        // Legacy constructors removed or deprecated (since material is mandatory now)
+        // If you want to keep the old ones, you can mark them deprecated or remove them
 
         ~GLMesh();
 
@@ -29,22 +34,28 @@ namespace GLRenderer {
 
         const std::vector<Vertex>& GetVertices() const override { return vertices_; }
         const std::vector<unsigned int>& GetIndices() const override { return indices_; }
-        const std::vector<std::shared_ptr<ITexture>>& GetTextures() const override { return textures_; }
+
+        // Since textures are handled by material now, this returns empty or can be removed
+        const std::vector<std::shared_ptr<ITexture>>& GetTextures() const override {
+            static const std::vector<std::shared_ptr<ITexture>> emptyTextures;
+            return emptyTextures;
+        }
+
+        // Provide access to material if needed
+        std::shared_ptr<GLMaterial> GetMaterial() const { return material_; }
 
     private:
         std::vector<Vertex> vertices_;
         std::vector<unsigned int> indices_;
-        std::vector<std::shared_ptr<ITexture>> textures_;
+
+        std::shared_ptr<GLMaterial> material_;
 
         GLMeshBuffers meshBuffers_;
 
         bool isInit_ = false;
         bool isCleanedUp_ = false;
 
-       // std::unordered_map<std::string, int> textureUnitCache_;
-
         void setupMesh();
     };
+
 }
-
-

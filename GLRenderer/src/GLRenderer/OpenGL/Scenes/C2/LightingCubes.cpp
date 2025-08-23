@@ -415,10 +415,12 @@ namespace GLRenderer {
                 usedWidth = 0.0f;  // Reset when wrapping
             };
 
+
+
         // Render each texture (if it exists)
-        showTexture("Diffuse Map", containerMat_.getDiffuseTexture());
-        showTexture("Specular Map", containerMat_.getSpecularTexture());
-        showTexture("Emission Map", containerMat_.getEmissiveTexture());
+        showTexture("Diffuse Map", containerMat_.getDiffuseTextures()[0]);
+        showTexture("Specular Map", containerMat_.getSpecularTextures()[0]);
+        showTexture("Emission Map", containerMat_.getEmissionTextures()[0]);
 
         ImGui::SliderFloat("Material Shininess", &containerMat_.getShininess(), 1.0f, 256.0f);
 
@@ -472,7 +474,9 @@ namespace GLRenderer {
         containerSpecular_.setType(TextureType::SPECULAR);
         containerEmission_.setType(TextureType::EMISSION);
         //setup material values
-        containerMat_.setupProperties(std::make_shared<GLTexture2D>(containerDiffuse_), std::make_shared<GLTexture2D>(containerSpecular_), std::make_shared<GLTexture2D>(containerEmission_));
+        containerMat_.addDiffuseTexture(std::make_shared<GLTexture2D>(containerDiffuse_));
+        containerMat_.addSpecularTexture(std::make_shared<GLTexture2D>(containerSpecular_));
+        containerMat_.addEmissionTexture(std::make_shared<GLTexture2D>(containerEmission_));
         //shininess
         float containerShininess = 64.0f;
         containerMat_.setShininess(containerShininess);

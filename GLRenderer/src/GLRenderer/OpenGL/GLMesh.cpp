@@ -3,32 +3,25 @@
 #include <GLRenderer/OpenGL/GLTexture.hpp>
 #include <GLRenderer/Interface/Types/VertexAttribFlagsOperators.hpp>
 #include <glad/glad.h>
+#include <iostream>
 
 namespace GLRenderer {
+
     GLMesh::GLMesh(const std::vector<Vertex>& vertices,
         const std::vector<unsigned int>& indices,
-        const std::vector<std::shared_ptr<ITexture>>& textures) : isInit_(false), isCleanedUp_(false)
-    {
-        vertices_ = vertices;
-        indices_ = indices;
-        textures_ = textures;
+        std::shared_ptr<GLMaterial> material)
+        : vertices_(vertices), indices_(indices), material_(std::move(material)),
+        isInit_(false), isCleanedUp_(false) {
     }
 
     GLMesh::GLMesh(const std::vector<Vertex>& vertices,
-        const std::vector<std::shared_ptr<ITexture>>& textures)
-        : isInit_(false), isCleanedUp_(false),
-        vertices_(vertices), textures_(textures)
-    {
-    }
-
-    GLMesh::GLMesh(const std::vector<Vertex>& vertices)
-        : isInit_(false), isCleanedUp_(false),
-        vertices_(vertices)
-    {
+        std::shared_ptr<GLMaterial> material)
+        : vertices_(vertices), material_(std::move(material)),
+        isInit_(false), isCleanedUp_(false) {
     }
 
     GLMesh::~GLMesh() {
-        Cleanup(); // Safe, it's idempotent
+        Cleanup(); // Safe to call multiple times
     }
 
     void GLMesh::Init() {
@@ -38,29 +31,30 @@ namespace GLRenderer {
     }
 
     void GLMesh::Cleanup() {
-        if (isCleanedUp_ == true) return;
-
+        if (isCleanedUp_) return;
         meshBuffers_.Cleanup();
-
         isCleanedUp_ = true;
         isInit_ = false;
     }
 
     void GLMesh::setupMesh() {
-
         meshBuffers_.Bind();
 
         if (!vertices_.empty() && !indices_.empty()) {
-            meshBuffers_.CreateAll(vertices_, indices_, GLRenderer::VertexAttribFlags::POSITION | GLRenderer::VertexAttribFlags::TEXCOORDS | GLRenderer::VertexAttribFlags::NORMAL);
+            meshBuffers_.CreateAll(vertices_, indices_,
+                GLRenderer::VertexAttribFlags::POSITION |
+                GLRenderer::VertexAttribFlags::TEXCOORDS |
+                GLRenderer::VertexAttribFlags::NORMAL);
         }
         else if (!vertices_.empty()) {
-            meshBuffers_.CreateVertices(vertices_, GLRenderer::VertexAttribFlags::POSITION | GLRenderer::VertexAttribFlags::TEXCOORDS | GLRenderer::VertexAttribFlags::NORMAL);
+            meshBuffers_.CreateVertices(vertices_,
+                GLRenderer::VertexAttribFlags::POSITION |
+                GLRenderer::VertexAttribFlags::TEXCOORDS |
+                GLRenderer::VertexAttribFlags::NORMAL);
         }
         else {
-            // Optional: log error or assert
             std::cerr << "GLMesh::setupMesh() - No vertex data provided!" << std::endl;
-            return;
-        }  
+        }
 
         meshBuffers_.Unbind();
     }
@@ -73,74 +67,61 @@ namespace GLRenderer {
             return;
         }
 
-        unsigned int diffuseIndex = 0;
-        unsigned int specularIndex = 0;
-        unsigned int emissionIndex = 0;
-
-        for (unsigned int i = 0; i < textures_.size(); ++i) {
-            glActiveTexture(GL_TEXTURE0 + i);
-
-            // Cast to GLTexture2D
-            GLTexture2D* glTex = dynamic_cast<GLTexture2D*>(textures_[i].get());
-            if (!glTex) {
-                std::cerr << "Texture is not a GLTexture2D.\n";
-                continue;
-            }
-
-            TextureType type = glTex->getType();
-
-            std::string uniformName;
-            switch (type) {
-            case TextureType::DIFFUSE:
-                if (diffuseIndex >= 8) continue;
-                uniformName = "material.diffuse[" + std::to_string(diffuseIndex) + "]";
-                shader->setInt(uniformName, i);
-                uniformName = "useDiffuseMap";
-                shader->setBool(uniformName, true);
-                diffuseIndex++;
-                break;
-
-            case TextureType::SPECULAR:
-                if (specularIndex >= 8) continue;
-                uniformName = "material.specular[" + std::to_string(specularIndex) + "]";
-                shader->setInt(uniformName, i);
-                uniformName = "useSpecularMap";
-                shader->setBool(uniformName, true);
-                specularIndex++;
-                break;
-
-            case TextureType::EMISSION:
-                if (emissionIndex >= 8) continue;
-                uniformName = "material.emission[" + std::to_string(emissionIndex) + "]";
-                shader->setInt(uniformName, i);
-                uniformName = "useEmissionMap";
-                shader->setBool(uniformName, true);
-                emissionIndex++;
-                break;
-
-            default:
-                // Unknown or unsupported texture type, skip binding
-                continue;
-            }
-
-            // Bind the texture to the current active texture unit
-            glTex->bind(i);
+        if (!material_) {
+            std::cerr << "GLMesh::Draw called without a valid material." << std::endl;
+            return;
         }
 
-        // Set the counts to the shader (make sure your shader has these uniforms!)
-        shader->setInt("numDiffuseTextures", diffuseIndex);
-        shader->setInt("numSpecularTextures", specularIndex);
-        shader->setInt("numEmissionTextures", emissionIndex);
+        // Bind textures through the material
+        // Assume material manages max 8 textures per type internally
+        unsigned int diffuseCount = 0;
+        unsigned int specularCount = 0;
+        unsigned int emissionCount = 0;
 
-        // Draw
-        glActiveTexture(GL_TEXTURE0); // reset active texture
+        const auto& diffuseMaps = material_->getDiffuseTextures();
+        for (unsigned int i = 0; i < diffuseMaps.size() && diffuseCount < 8; ++i, ++diffuseCount) {
+            glActiveTexture(GL_TEXTURE0 + i);
+            auto glTex = std::dynamic_pointer_cast<GLTexture2D>(diffuseMaps[i]);
+            if (!glTex) continue;
+            glTex->bind(i);
+            shader->setInt("material.diffuse[" + std::to_string(diffuseCount) + "]", i);
+        }
+        shader->setInt("numDiffuseTextures", diffuseCount);
+        shader->setBool("useDiffuseMap", diffuseCount > 0);
+
+        const auto& specularMaps = material_->getSpecularTextures();
+        for (unsigned int i = 0; i < specularMaps.size() && specularCount < 8; ++i, ++specularCount) {
+            glActiveTexture(GL_TEXTURE0 + diffuseCount + i);
+            auto glTex = std::dynamic_pointer_cast<GLTexture2D>(specularMaps[i]);
+            if (!glTex) continue;
+            glTex->bind(diffuseCount + i);
+            shader->setInt("material.specular[" + std::to_string(specularCount) + "]", diffuseCount + i);
+        }
+        shader->setInt("numSpecularTextures", specularCount);
+        shader->setBool("useSpecularMap", specularCount > 0);
+
+        const auto& emissionMaps = material_->getEmissionTextures();
+        for (unsigned int i = 0; i < emissionMaps.size() && emissionCount < 8; ++i, ++emissionCount) {
+            glActiveTexture(GL_TEXTURE0 + diffuseCount + specularCount + i);
+            auto glTex = std::dynamic_pointer_cast<GLTexture2D>(emissionMaps[i]);
+            if (!glTex) continue;
+            glTex->bind(diffuseCount + specularCount + i);
+            shader->setInt("material.emission[" + std::to_string(emissionCount) + "]", diffuseCount + specularCount + i);
+        }
+        shader->setInt("numEmissionTextures", emissionCount);
+        shader->setBool("useEmissionMap", emissionCount > 0);
+
+        // Draw the mesh
+        glActiveTexture(GL_TEXTURE0); // reset active texture unit
+
         meshBuffers_.Bind();
         if (!indices_.empty()) {
             glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices_.size()), GL_UNSIGNED_INT, 0);
         }
-        else
+        else {
             glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertices_.size()));
+        }
         meshBuffers_.Unbind();
     }
 
-}
+} // namespace GLRenderer

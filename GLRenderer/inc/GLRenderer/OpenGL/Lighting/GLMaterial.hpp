@@ -2,6 +2,7 @@
 
 #include <GLRenderer/Interface/Lighting/IMaterial.hpp>
 #include <GLRenderer/OpenGL/GLTexture.hpp>
+#include <vector>
 #include <memory>
 
 namespace GLRenderer {
@@ -10,32 +11,32 @@ namespace GLRenderer {
         GLMaterial();
         ~GLMaterial() override = default;
 
+        static constexpr int MAX_TEXTURES_PER_TYPE = 8;
+
         void applyProperties(IShader& shader) override;
 
         // Setters
-        void setDiffuseTexture(std::shared_ptr<GLTexture2D> texture);
-        void setSpecularTexture(std::shared_ptr<GLTexture2D> texture);
-        void setEmissiveTexture(std::shared_ptr<GLTexture2D> texture);
+        void addDiffuseTexture(std::shared_ptr<GLTexture2D> texture);
+        void addSpecularTexture(std::shared_ptr<GLTexture2D> texture);
+        void addEmissionTexture(std::shared_ptr<GLTexture2D> texture);
         void setShininess(float shininess);
         void setEmissionIntensity(float intensity);
 
-        void setupProperties(
-            std::shared_ptr<GLTexture2D> diffuseTexture,
-            std::shared_ptr<GLTexture2D> specularTexture,
-            std::shared_ptr<GLTexture2D> emissiveTexture
-        );
+        void setDiffuseTextures(const std::vector<std::shared_ptr<GLTexture2D>>& textures);
+        void setSpecularTextures(const std::vector<std::shared_ptr<GLTexture2D>>& textures);
+        void setEmissionTextures(const std::vector<std::shared_ptr<GLTexture2D>>& textures);
 
         // Non-const getter returns shared_ptr<T>&
-        std::shared_ptr<GLTexture2D>& getDiffuseTexture();
+        std::vector<std::shared_ptr<GLTexture2D>>& getDiffuseTextures();
 
         // Const getter returns shared_ptr<const GLTexture2D> by value
-        std::shared_ptr<const GLTexture2D> getDiffuseTexture() const;
+        const std::vector<std::shared_ptr<GLTexture2D>>& getDiffuseTextures() const;
 
-        std::shared_ptr<GLTexture2D>& getSpecularTexture();
-        std::shared_ptr<const GLTexture2D> getSpecularTexture() const;
+        std::vector<std::shared_ptr<GLTexture2D>>& getSpecularTextures();
+        const std::vector<std::shared_ptr<GLTexture2D>>& getSpecularTextures() const;
 
-        std::shared_ptr<GLTexture2D>& getEmissiveTexture();
-        std::shared_ptr<const GLTexture2D> getEmissiveTexture() const;
+        std::vector<std::shared_ptr<GLTexture2D>>& getEmissionTextures();
+        const std::vector<std::shared_ptr<GLTexture2D>>& getEmissionTextures() const;
 
         // Getter/setter for shininess
         float& getShininess();
@@ -43,16 +44,17 @@ namespace GLRenderer {
         float& getEmissionIntensity();
         const float& getEmissionIntensity() const;
 
-        bool hasDiffuseTexture() const;
-        bool hasSpecularTexture() const;
-        bool hasEmissiveTexture() const;
-
     private:
         float shininess_ = 32.0f;
         float emissionIntensity = 1.0f;
 
-        std::shared_ptr<GLTexture2D> diffuseMap_ = nullptr;
-        std::shared_ptr<GLTexture2D> specularMap_ = nullptr;
-        std::shared_ptr<GLTexture2D> emissiveMap_ = nullptr;
+        std::vector<std::shared_ptr<GLTexture2D>> diffuseMaps_;
+        std::vector<std::shared_ptr<GLTexture2D>> specularMaps_;
+        std::vector<std::shared_ptr<GLTexture2D>> emissionMaps_;
+
+        // Add functions to get the max textures per type
+        int getNumDiffuseTextures() const { return static_cast<int>(diffuseMaps_.size()); }
+        int getNumSpecularTextures() const { return static_cast<int>(specularMaps_.size()); }
+        int getNumEmissionTextures() const { return static_cast<int>(emissionMaps_.size()); }
     };
 }
