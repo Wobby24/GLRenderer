@@ -9,6 +9,7 @@
 #include <GLRenderer/OpenGL/Lighting/Types/GLPointLight.hpp>
 #include <GLRenderer/OpenGL/Lighting/GLLightManager.hpp>
 #include <GLRenderer/OpenGL/GLModel.hpp>
+#include <GLRenderer/OpenGL/TransformableGLModel.hpp>
 #include <iostream>
 #include <memory>
 
@@ -38,6 +39,7 @@ namespace GLRenderer {
 		std::unique_ptr<GLCamera> camera_;
 		std::unique_ptr<GLLightManager> lightManager_;
 		std::unique_ptr<GLModel> backpack_;
+		std::unique_ptr<TransformableGLModel> model_;
 
 		void SetupBuffers();
 

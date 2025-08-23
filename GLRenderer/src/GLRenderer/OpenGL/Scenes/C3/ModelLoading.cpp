@@ -448,8 +448,8 @@ namespace GLRenderer {
     }
 
     void ModelLoading::SetupModel() {
-        backpack_ = std::make_unique<GLModel>("res/Models/DamagedHelmet/DamagedHelmet.gltf");
-        backpack_->Init();
+        model_ = std::make_unique<TransformableGLModel>("res/Models/BFG/scene.gltf");
+        model_->Init();
     }
 
     void ModelLoading::SetWindow(Window::IWindow& window) {
@@ -510,20 +510,19 @@ namespace GLRenderer {
         lightingShader_.setInt("numDirLights", lightManager_->GetNumLights(LightType::Directional));
 
         lightingShader_.setVec3("viewPos", camera_.get()->getAttributes().position);
-        lightingShader_.setFloat("material.shininess", 32.0f);
-        
-        glm::mat4 model = glm::mat4(1.0);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(1.0f));
-        lightingShader_.setMat4("model", model);
-        backpack_->Draw(lightingShader_);
+
+        model_->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+        model_->SetRotation(glm::vec3(glm::radians(180.0f), 0.0f, 0.0f));
+        model_->SetScale(glm::vec3(0.01f));
+        model_->Draw(lightingShader_);
 
         lightMesh_.Bind();
 
         lightSourceShader_.use();
         lightSourceShader_.setMat4("projection", projection_); 
         lightSourceShader_.setMat4("view", view_);
+
+        glm::mat4 model = glm::mat4(1.0);
 
         for (const auto& [id, light] : lightManager_->GetAllLights()) {
             if (light->getType() != LightType::Point)
@@ -550,7 +549,7 @@ namespace GLRenderer {
 
     void ModelLoading::Cleanup() {
         //cleanup mesh buffer, set is cleaned to true
-        backpack_->Cleanup();
+        model_->Cleanup();
         lightMesh_.Cleanup();
         cleanupImGUI();
         isCleaned_ = true;

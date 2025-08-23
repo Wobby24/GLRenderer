@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -41,5 +42,7 @@ namespace GLRenderer {
 			aiMaterial* mat,
 			aiTextureType aiType,
 			GLRenderer::TextureType glType);
+		std::string getAbsoluteModelPath(const std::string& relativePath);
+		std::filesystem::path getExecutableDir();
 	};
 }

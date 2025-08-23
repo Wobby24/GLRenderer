@@ -138,16 +138,17 @@ vec3 getSpecularColor() {
 vec3 getEmissionColor() {
     vec3 color = vec3(0.0);
     if (useEmissionMap && numEmissionTextures > 0) {
-        for (int i   = 0; i < numEmissionTextures; ++i) {
+        for (int i = 0; i < numEmissionTextures; ++i) {
             color += texture(material.emission[i], TexCoords).rgb;
         }
         color /= float(numEmissionTextures);
         color *= material.emissionIntensity;
     } else {
-        color = vec3(1.0, 0.0, 1.0); // magenta fallback
+        // No emission map, so no emission color
+        color = vec3(0.0); // black, no emission
     }
     return color;
-} 
+}
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 diffuseColor, vec3 specularColor) {
     vec3 lightDir = normalize(-light.direction);

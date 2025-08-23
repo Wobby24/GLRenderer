@@ -107,7 +107,6 @@ namespace GLRenderer {
 		return fullPath.string();
 	}
 
-
 	//use program method
 	void GLShader::use() const { 
 		assertInitialized();

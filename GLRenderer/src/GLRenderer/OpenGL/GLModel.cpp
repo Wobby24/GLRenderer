@@ -1,7 +1,14 @@
+#ifdef _WIN32
+#include <windows.h>
+#elif __APPLE__
+#include <mach-o/dyld.h>
+#elif __linux__
+#include <unistd.h>
+#endif
+
 #include <GLRenderer/OpenGL/GLModel.hpp>
 #include <GLRenderer/OpenGL/GLTexture.hpp>
 #include <GLRenderer/OpenGL/GLTextureCache.hpp>
-
 
 namespace GLRenderer {
 
@@ -53,7 +60,7 @@ namespace GLRenderer {
 
 	void GLModel::loadModel(const std::string& path) {
 		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(path,
+		const aiScene* scene = importer.ReadFile(getAbsoluteModelPath(path),
 			aiProcess_Triangulate |
 			aiProcess_GenSmoothNormals |
 			aiProcess_FlipUVs |
@@ -130,6 +137,18 @@ namespace GLRenderer {
 		auto normalMaps = loadMaterialTextures(aiMat, aiTextureType_NORMALS, TextureType::NORMAL);
 		auto emissionMaps = loadMaterialTextures(aiMat, aiTextureType_EMISSIVE, TextureType::EMISSION);
 
+		float shininess = 0.0f;
+		if (aiMat->Get(AI_MATKEY_SHININESS, shininess) == AI_SUCCESS) {
+			if (shininess <= 0.0f) {
+				std::cout << "[Warning] Material shininess is 0. Using default of 32.0f\n";
+				shininess = 32.0f;
+			}
+		}
+		else {
+			std::cout << "[Warning] Shininess not found. Using default of 32.0f\n";
+			shininess = 32.0f;
+		}
+
 		// Create a unique key for the material based on texture paths
 		std::string materialKey;
 		for (const auto& tex : diffuseMaps)  materialKey += tex->getFilePath() + "|";
@@ -151,6 +170,7 @@ namespace GLRenderer {
 			material->setSpecularTextures(specularMaps);
 			// material->setNormalTextures(normalMaps); // uncomment if you want to use normal maps
 			material->setEmissionTextures(emissionMaps);
+			material->setShininess(shininess);
 
 			materialCache_[materialKey] = material;
 		}
@@ -181,5 +201,79 @@ namespace GLRenderer {
 		}
 
 		return textures;
+	}
+
+	//util functions
+
+	std::filesystem::path GLModel::getExecutableDir() {
+#ifdef _WIN32
+		char buffer[MAX_PATH];
+		GetModuleFileNameA(NULL, buffer, MAX_PATH);
+		return std::filesystem::path(buffer).parent_path();
+
+#elif __APPLE__
+		char buffer[1024];
+		uint32_t size = sizeof(buffer);
+		if (_NSGetExecutablePath(buffer, &size) == 0) {
+			return std::filesystem::path(buffer).parent_path();
+		}
+		return {}; // Failed
+
+#elif __linux__
+		char buffer[1024];
+		ssize_t count = readlink("/proc/self/exe", buffer, sizeof(buffer));
+		if (count != -1) {
+			return std::filesystem::path(std::string(buffer, count)).parent_path();
+		}
+		return {}; // Failed
+
+#else
+		return {}; // Unsupported platform
+#endif
+	}
+
+	std::string GLModel::getAbsoluteModelPath(const std::string& path) {
+		auto exeDir = getExecutableDir();
+
+		// Search upwards up to 5 levels for GLRenderer/res/Shaders
+		std::filesystem::path shaderRoot;
+
+		std::filesystem::path searchDir = exeDir;
+		bool found = false;
+
+		for (int i = 0; i < 6; ++i) {
+			auto candidate = searchDir / "GLRenderer" / "res" / "Models";
+			if (std::filesystem::exists(candidate)) {
+				shaderRoot = candidate;
+				found = true;
+				break;
+			}
+			searchDir = searchDir.parent_path();
+			if (searchDir == searchDir.root_path()) break;
+		}
+
+		if (!found) {
+			throw std::runtime_error("Could not locate GLRenderer/res/Models folder relative to executable");
+		}
+
+		// Now append relative path (remove the "res/Shaders" prefix if present)
+		std::filesystem::path inputPath(path);
+		std::filesystem::path baseRel = "res/Models";
+
+		std::filesystem::path relativePath;
+
+		if (inputPath.string().find(baseRel.string()) != std::string::npos) {
+			relativePath = std::filesystem::relative(inputPath, baseRel);
+		}
+		else {
+			relativePath = inputPath;
+		}
+
+		auto fullPath = shaderRoot / relativePath;
+		fullPath = fullPath.lexically_normal();
+
+		//	std::cout << "[GLShader] Resolved shader path: " << fullPath << std::endl;
+
+		return fullPath.string();
 	}
 }
