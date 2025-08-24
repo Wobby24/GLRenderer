@@ -39,7 +39,8 @@ namespace GLRenderer {
 		std::unique_ptr<GLCamera> camera_;
 		std::unique_ptr<GLLightManager> lightManager_;
 		std::unique_ptr<GLModel> backpack_;
-		std::unique_ptr<TransformableGLModel> model_;
+		std::shared_ptr<TransformableGLModel> model_;
+		std::unordered_map<int, std::shared_ptr<TransformableGLModel>> transformableModels_;
 
 		void SetupBuffers();
 
@@ -110,6 +111,7 @@ namespace GLRenderer {
 		//also this is just set to a compatible res, not anything specific
 		int windowWidth_ = 1280;
 		int windowHeight_ = 720;
+		int nextModelID_ = 0;
 
 		void initResources();
 		void initCamera();
@@ -117,6 +119,8 @@ namespace GLRenderer {
 		void initImGUI(GLFWwindow* window);
 		void cleanupImGUI();
 		void renderLightingUI();
+		void renderTGLM_GUI();
+		void drawMaterialEditor(GLRenderer::GLMaterial& material);
 		//void reloadResources();
 		void renderImGUI();
 	};

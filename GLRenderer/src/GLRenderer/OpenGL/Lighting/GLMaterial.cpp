@@ -115,6 +115,14 @@ namespace GLRenderer {
         return shininess_;
     }
 
+    float& GLMaterial::getEmissionIntensity() {
+        return emissionIntensity_;
+    }
+
+    const float& GLMaterial::getEmissionIntensity() const {
+        return emissionIntensity_;
+    }
+
     std::vector<std::shared_ptr<GLTexture2D>>& GLMaterial::getDiffuseTextures() {
         return diffuseMaps_;
     }

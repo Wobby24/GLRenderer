@@ -9,7 +9,7 @@
 
 namespace GLRenderer {
 
-    ModelLoading::ModelLoading() : view_(glm::mat4(1.0)), projection_(glm::mat4(1.0)), lightingShader_("Scenes/C3/modelLoading.vert", "Scenes/C3/modelLoading.frag"), lightSourceShader_("Scenes/C2/lightSource.vert", "Scenes/C2/lightSource.frag"), isInitialized_(false), isCleaned_(false), isWireframe_(false), imguiInitialized_(false), isPointerLocked_(true), showExitConfirmDialog(false), windowWidth_(1280), windowHeight_(720) {}
+    ModelLoading::ModelLoading() : view_(glm::mat4(1.0)), projection_(glm::mat4(1.0)), lightingShader_("Scenes/C3/modelLoading.vert", "Scenes/C3/modelLoading.frag"), lightSourceShader_("Scenes/C2/lightSource.vert", "Scenes/C2/lightSource.frag"), isInitialized_(false), isCleaned_(false), isWireframe_(false), imguiInitialized_(false), isPointerLocked_(true), showExitConfirmDialog(false), windowWidth_(1280), windowHeight_(720), nextModelID_(0){}
 
     ModelLoading::~ModelLoading() {
         if (!isInitialized_ || isCleaned_) return;
@@ -59,6 +59,92 @@ namespace GLRenderer {
         ImGui_ImplOpenGL3_Init("#version 330 core");
 
         imguiInitialized_ = true;
+    }
+
+    void ModelLoading::renderTGLM_GUI() {
+        if (ImGui::CollapsingHeader("Transformable Models", ImGuiTreeNodeFlags_DefaultOpen)) {
+            static int selectedModelID = -1;
+
+            // Generate model list
+            std::vector<std::pair<int, std::string>> modelEntries;
+            for (const auto& [id, model] : transformableModels_) {
+                modelEntries.emplace_back(id, "Model #" + std::to_string(id));
+            }
+
+            // Determine selected index
+            static int selectedIndex = -1;
+            if (selectedModelID != -1) {
+                selectedIndex = -1;
+                for (int i = 0; i < (int)modelEntries.size(); ++i) {
+                    if (modelEntries[i].first == selectedModelID) {
+                        selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            // Combo box
+            if (ImGui::BeginCombo("Select Model", selectedIndex >= 0 ? modelEntries[selectedIndex].second.c_str() : "None")) {
+                for (int i = 0; i < (int)modelEntries.size(); ++i) {
+                    bool isSelected = (selectedIndex == i);
+                    if (ImGui::Selectable(modelEntries[i].second.c_str(), isSelected)) {
+                        selectedIndex = i;
+                        selectedModelID = modelEntries[i].first;
+                    }
+                    if (isSelected)
+                        ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+
+            if (selectedModelID != -1) {
+                auto& model = transformableModels_[selectedModelID];
+                if (!model) {
+                    selectedModelID = -1;
+                    return;
+                }
+
+                ImGui::Separator();
+                ImGui::Text("Editing Model #%d", selectedModelID);
+
+                glm::vec3 position = model->GetPosition();
+                glm::vec3 scale = model->GetScale();
+                glm::vec3 eulerAngles = glm::degrees(glm::eulerAngles(model->GetRotation()));
+                bool updated = false;
+
+                if (ImGui::SliderFloat3("Position", &position[0], -100.0f, 100.0f)) {
+                    model->SetPosition(position);
+                    updated = true;
+                }
+
+                if (ImGui::SliderFloat3("Rotation (Euler)", &eulerAngles[0], -180.0f, 180.0f)) {
+                    glm::quat newRot = glm::quat(glm::radians(eulerAngles));
+                    model->SetRotation(newRot);
+                    updated = true;
+                }
+
+                if (ImGui::SliderFloat3("Scale", &scale[0], 0.01f, 10.0f)) {
+                    model->SetScale(scale);
+                    updated = true;
+                }
+
+                if (ImGui::Button("Reset Transform")) {
+                    model->SetPosition(glm::vec3(0.0f));
+                    model->SetRotation(glm::quat(glm::vec3(0.0f)));
+                    model->SetScale(glm::vec3(1.0f));
+                }
+
+                auto& glModel = model->GetModel(); // GLModel&
+                for (const auto& [materialName, materialPtr] : glModel.GetMaterialCache()) {
+                    std::filesystem::path matPath(materialName);
+                    std::string filename = matPath.filename().string();
+
+                    if (ImGui::CollapsingHeader("Materials")) {
+                        drawMaterialEditor(*materialPtr);
+                    }
+                }
+            }
+        }
     }
 
     void ModelLoading::renderLightingUI() {
@@ -315,6 +401,82 @@ namespace GLRenderer {
         }
     }
 
+    void ModelLoading::drawMaterialEditor(GLRenderer::GLMaterial& material) {
+        // Display shininess and emission intensity
+        float shininess = material.getShininess();
+        if (ImGui::SliderFloat("Shininess", &shininess, 1.0f, 128.0f)) {
+            material.setShininess(shininess);
+        }
+
+        float emission = material.getEmissionIntensity();
+        if (ImGui::SliderFloat("Emission Intensity", &emission, 0.0f, 10.0f)) {
+            material.setEmissionIntensity(emission);
+        }
+
+        // Helper lambda to display textures of each type
+        auto displayTextureList = [](const std::vector<std::shared_ptr<GLRenderer::GLTexture2D>>& textures, const char* label) {
+            if (textures.empty()) {
+                ImGui::Text("%s: None", label);
+                return;
+            }
+
+            // Replace the old code here with the new table layout:
+
+            ImGui::Text("%s:", label);
+            ImGui::Indent();
+
+            static std::unordered_map<unsigned int, bool> flipStates; // persistent flip states
+
+            if (ImGui::BeginTable(("table_" + std::string(label)).c_str(), 4, ImGuiTableFlags_NoBordersInBody)) {
+                ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 150.0f);
+                ImGui::TableSetupColumn("Thumbnail", ImGuiTableColumnFlags_WidthFixed, 70.0f);
+                ImGui::TableSetupColumn("Flip", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+                ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 50.0f);
+                ImGui::TableHeadersRow();
+
+                for (size_t i = 0; i < textures.size(); ++i) {
+                    auto& tex = textures[i];
+                    unsigned int texID = tex->getID();
+
+                    std::filesystem::path texPath(tex->getFilePath());
+                    std::string texFilename = texPath.filename().string();
+
+                    // Initialize flip state if not set
+                    if (flipStates.find(texID) == flipStates.end()) {
+                        flipStates[texID] = tex->getVertTexFlip();
+                    }
+
+                    ImGui::TableNextRow();
+
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::Text("Texture %zu: %s", i, texFilename.c_str());
+
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Image((void*)(intptr_t)texID, ImVec2(64, 64));
+
+                    ImGui::TableSetColumnIndex(2);
+                    bool& flipped = flipStates[texID];
+                    std::string checkboxLabel = flipped ? "true" : "false";
+                    if (ImGui::Checkbox(checkboxLabel.c_str(), &flipped)) {
+                        tex->setVertTexFlip(flipped);
+                        tex->reload();
+                    }
+
+                    ImGui::TableSetColumnIndex(3);
+                    ImGui::Text("%u", texID);
+                }
+
+                ImGui::EndTable();
+            }
+
+            ImGui::Unindent();
+            };
+
+        // Show all texture types
+        displayTextureList(material.getDiffuseTextures(), "Diffuse Textures");
+        displayTextureList(material.getSpecularTextures(), "Specular Textures");
+        displayTextureList(material.getEmissionTextures(), "Emission Textures");
+    }
 
     void ModelLoading::cleanupImGUI() {
         if (!imguiInitialized_) return;
@@ -393,10 +555,9 @@ namespace GLRenderer {
         ImGui::SliderFloat("Sensitivity", &camera_.get()->getAttributes().mouseSensitivity, 0.01f, 1.0f);
         ImGui::SliderFloat("Zoom", &camera_.get()->getAttributes().zoom, 1.0f, 45.0f);
 
-        ImGui::Separator();
-        ImGui::Text("Lighting");
-
         renderLightingUI();
+
+        renderTGLM_GUI();
 
         ImGui::Separator();
         ImGui::Text("Renderer Info");
@@ -448,8 +609,14 @@ namespace GLRenderer {
     }
 
     void ModelLoading::SetupModel() {
-        model_ = std::make_unique<TransformableGLModel>("BFG/scene.gltf");
-        model_->Init();
+        auto model = std::make_shared<TransformableGLModel>("BFG/scene.gltf");
+        model->Init();
+
+        int modelID = nextModelID_++;
+
+        transformableModels_[modelID] = model;
+
+        model_ = model;  // shared_ptr to shared_ptr assignment is OK
     }
 
     void ModelLoading::SetWindow(Window::IWindow& window) {
@@ -511,9 +678,9 @@ namespace GLRenderer {
 
         lightingShader_.setVec3("viewPos", camera_.get()->getAttributes().position);
 
-        model_->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-        model_->SetRotation(glm::vec3(glm::radians(180.0f), 0.0f, 0.0f));
-        model_->SetScale(glm::vec3(0.01f));
+    //    model_->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+    //    model_->SetRotation(glm::vec3(glm::radians(180.0f), 0.0f, 0.0f));
+     //   model_->SetScale(glm::vec3(0.01f));
         model_->Draw(lightingShader_);
 
         lightMesh_.Bind();

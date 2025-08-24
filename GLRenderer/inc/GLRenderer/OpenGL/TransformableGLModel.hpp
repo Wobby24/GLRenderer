@@ -4,7 +4,7 @@
 #include "Transformable.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <typeinfo>  // for std::bad_cast
+#include <typeinfo>
 
 namespace GLRenderer {
 
@@ -33,16 +33,29 @@ namespace GLRenderer {
             model_.Cleanup();
         }
 
-        // ITransformable interface forwarding to transform_
-        glm::vec3 GetPosition() const override { return transform_.GetPosition(); }
-        glm::quat GetRotation() const override { return transform_.GetRotation(); }
-        glm::vec3 GetScale() const override { return transform_.GetScale(); }
+        // ITransformable interface - const accessors
+        const glm::vec3& GetPosition() const override { return transform_.GetPosition(); }
+        const glm::quat& GetRotation() const override { return transform_.GetRotation(); }
+        const glm::vec3& GetScale() const override { return transform_.GetScale(); }
+
+        // ITransformable interface - non-const accessors
+        glm::vec3& GetPosition() override { return transform_.GetPosition(); }
+        glm::quat& GetRotation() override { return transform_.GetRotation(); }
+        glm::vec3& GetScale() override { return transform_.GetScale(); }
 
         void SetPosition(const glm::vec3& pos) override { transform_.SetPosition(pos); }
         void SetRotation(const glm::quat& rot) override { transform_.SetRotation(rot); }
         void SetScale(const glm::vec3& scl) override { transform_.SetScale(scl); }
 
-        glm::mat4 GetTransformMatrix() const override { return transform_.GetTransformMatrix(); }
+        // Provide read-only access to the underlying GLModel
+        const GLModel& GetModel() const { return model_; }
+
+        // Or if you need to modify it:
+        GLModel& GetModel() { return model_; }
+
+        glm::mat4 GetTransformMatrix() const override {
+            return transform_.GetTransformMatrix();
+        }
 
     private:
         GLModel model_;
