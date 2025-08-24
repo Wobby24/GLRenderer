@@ -1,3 +1,4 @@
+#include <GLRenderer/Utils/getAbsolutePath.hpp>
 #include <glad/glad.h>
 ///surpress warnings for stb_image
 #ifdef _MSC_VER
@@ -133,4 +134,49 @@ namespace GLRenderer {
 		cleanup();
 		loadTexture();
 	}
+
+	void GLTexture2D::loadTexture(const std::string& baseDir) {
+		baseDir_ = baseDir; // store it if needed later
+
+		// Resolve the absolute path using your helper
+		std::string absPath = GLRenderer::getAbsoluteResourcePath(filePath_, baseDir_);
+
+		std::cout << "[Debug] absoluteInput: \"" << absPath << "\"\n";
+
+		stbi_set_flip_vertically_on_load(isVertFlipped_);
+
+		int width, height, nrChannels;
+		unsigned char* data = stbi_load(absPath.c_str(), &width, &height, &nrChannels, 0);
+
+		if (!data) {
+			throw std::runtime_error("Texture data invalid! Could not load the texture at: " + absPath);
+		}
+
+		glGenTextures(1, &id_);
+		glBindTexture(GL_TEXTURE_2D, id_);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, static_cast<GLenum>(wrapS_));
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, static_cast<GLenum>(wrapT_));
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<GLenum>(minFilter_));
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<GLenum>(magFilter_));
+
+		GLenum format = GL_RGB;
+		if (nrChannels == 1)
+			format = GL_RED;
+		else if (nrChannels == 3)
+			format = GL_RGB;
+		else if (nrChannels == 4)
+			format = GL_RGBA;
+
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		stbi_image_free(data);
+
+		isLoaded_ = true;
+		isCleaned_ = false;
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
 }

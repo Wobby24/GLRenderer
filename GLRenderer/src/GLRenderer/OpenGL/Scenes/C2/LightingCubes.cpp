@@ -9,7 +9,7 @@
 
 namespace GLRenderer {
 
-	LightingCubes::LightingCubes() : view_(glm::mat4(1.0)), projection_(glm::mat4(1.0)), lightPos_(glm::vec3(1.2f, 1.0f, 2.0f)), lightColor_(glm::vec3(1.0f, 1.0f, 1.0f)), lightingShader_("res/Shaders/Scenes/C2/lighting.vert", "res/Shaders/Scenes/C2/lighting.frag"), lightSourceShader_("res/Shaders/Scenes/C2/lightSource.vert", "res/Shaders/Scenes/C2/lightSource.frag"), containerDiffuse_("res/Textures/container2.png"), containerSpecular_("res/Textures/container2_specular.png"), containerEmission_("res/Textures/matrix.jpg"), isInitialized_(false), isCleaned_(false), isWireframe_(false), imguiInitialized_(false), isPointerLocked_(true), showExitConfirmDialog(false), windowWidth_(1280), windowHeight_(720) {}
+	LightingCubes::LightingCubes() : view_(glm::mat4(1.0)), projection_(glm::mat4(1.0)), lightPos_(glm::vec3(1.2f, 1.0f, 2.0f)), lightColor_(glm::vec3(1.0f, 1.0f, 1.0f)), lightingShader_("Scenes/C2/lighting.vert", "Scenes/C2/lighting.frag"), lightSourceShader_("Scenes/C2/lightSource.vert", "Scenes/C2/lightSource.frag"), containerDiffuse_("res/Textures/container2.png"), containerSpecular_("res/Textures/container2_specular.png"), containerEmission_("res/Textures/matrix.jpg"), isInitialized_(false), isCleaned_(false), isWireframe_(false), imguiInitialized_(false), isPointerLocked_(true), showExitConfirmDialog(false), windowWidth_(1280), windowHeight_(720) {}
 
 	LightingCubes::~LightingCubes() {
 		if (!isInitialized_ || isCleaned_) return;

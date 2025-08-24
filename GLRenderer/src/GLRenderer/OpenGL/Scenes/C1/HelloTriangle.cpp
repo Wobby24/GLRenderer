@@ -3,7 +3,7 @@
 
 namespace GLRenderer
 {
-    HelloTriangle::HelloTriangle() :  mainShader_("res/Shaders/Scenes/C1/main.vert", "res/Shaders/Scenes/C1/main.frag"), isInitialized_(false), isCleaned_(false), isWireframe_(false) {}
+    HelloTriangle::HelloTriangle() :  mainShader_("Scenes/C1/main.vert", "Scenes/C1/main.frag"), isInitialized_(false), isCleaned_(false), isWireframe_(false) {}
 
     HelloTriangle::~HelloTriangle() {
         if (!isInitialized_ || isCleaned_) return;

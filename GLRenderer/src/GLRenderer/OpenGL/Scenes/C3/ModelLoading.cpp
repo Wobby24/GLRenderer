@@ -9,7 +9,7 @@
 
 namespace GLRenderer {
 
-    ModelLoading::ModelLoading() : view_(glm::mat4(1.0)), projection_(glm::mat4(1.0)), lightingShader_("res/Shaders/Scenes/C3/modelLoading.vert", "res/Shaders/Scenes/C3/modelLoading.frag"), lightSourceShader_("res/Shaders/Scenes/C2/lightSource.vert", "res/Shaders/Scenes/C2/lightSource.frag"), isInitialized_(false), isCleaned_(false), isWireframe_(false), imguiInitialized_(false), isPointerLocked_(true), showExitConfirmDialog(false), windowWidth_(1280), windowHeight_(720) {}
+    ModelLoading::ModelLoading() : view_(glm::mat4(1.0)), projection_(glm::mat4(1.0)), lightingShader_("Scenes/C3/modelLoading.vert", "Scenes/C3/modelLoading.frag"), lightSourceShader_("Scenes/C2/lightSource.vert", "Scenes/C2/lightSource.frag"), isInitialized_(false), isCleaned_(false), isWireframe_(false), imguiInitialized_(false), isPointerLocked_(true), showExitConfirmDialog(false), windowWidth_(1280), windowHeight_(720) {}
 
     ModelLoading::~ModelLoading() {
         if (!isInitialized_ || isCleaned_) return;
@@ -448,7 +448,7 @@ namespace GLRenderer {
     }
 
     void ModelLoading::SetupModel() {
-        model_ = std::make_unique<TransformableGLModel>("res/Models/BFG/scene.gltf");
+        model_ = std::make_unique<TransformableGLModel>("BFG/scene.gltf");
         model_->Init();
     }
 

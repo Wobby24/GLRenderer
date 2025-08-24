@@ -45,7 +45,6 @@ namespace GLRenderer {
 		void createShaders();
 		void handleFileIO(const std::string& vertexPath, const std::string& fragmentPath,
 			std::string& vertexCode, std::string& fragmentCode);
-		std::string getAbsoluteShaderPath(const std::string& relativePath);
 		void cleanup();
 	};
 }

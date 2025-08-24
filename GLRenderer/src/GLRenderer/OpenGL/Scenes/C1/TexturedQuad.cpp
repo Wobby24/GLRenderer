@@ -2,7 +2,7 @@
 #include <GLRenderer//Interface/Types/VertexAttribFlagsOperators.hpp>
 
 namespace GLRenderer {
-    TexturedQuad::TexturedQuad() : mainShader_("res/Shaders/Scenes/C1/texture.vert", "res/Shaders/Scenes/C1/texture.frag"), texture_("res/Textures/container.jpg"), texture2_("res/Textures/awesomeface.png"), isInitialized_(false), isCleaned_(false), isWireframe_(false) {}
+    TexturedQuad::TexturedQuad() : mainShader_("Scenes/C1/texture.vert", "Scenes/C1/texture.frag"), texture_("res/Textures/container.jpg"), texture2_("res/Textures/awesomeface.png"), isInitialized_(false), isCleaned_(false), isWireframe_(false) {}
 
     TexturedQuad::~TexturedQuad() {
         if (!isInitialized_ || isCleaned_) return;

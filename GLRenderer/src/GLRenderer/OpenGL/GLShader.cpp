@@ -2,17 +2,8 @@
 #include <fstream>
 #include <sstream>
 
-#ifdef _WIN32
-#include <windows.h>
-#elif __APPLE__
-#include <mach-o/dyld.h>
-#elif __linux__
-#include <unistd.h>
-#endif
-
-
+#include <GLRenderer/Utils/getAbsolutePath.hpp>
 #include "GLRenderer/OpenGL/GLShader.hpp"
-#include <filesystem>
 #include <string>
 
 namespace GLRenderer {
@@ -33,78 +24,6 @@ namespace GLRenderer {
 			id_ = 0;
 		}
 		isCleanedUp_ = true;
-	}
-
-	std::filesystem::path getExecutableDir() {
-#ifdef _WIN32
-		char buffer[MAX_PATH];
-		GetModuleFileNameA(NULL, buffer, MAX_PATH);
-		return std::filesystem::path(buffer).parent_path();
-
-#elif __APPLE__
-		char buffer[1024];
-		uint32_t size = sizeof(buffer);
-		if (_NSGetExecutablePath(buffer, &size) == 0) {
-			return std::filesystem::path(buffer).parent_path();
-		}
-		return {}; // Failed
-
-#elif __linux__
-		char buffer[1024];
-		ssize_t count = readlink("/proc/self/exe", buffer, sizeof(buffer));
-		if (count != -1) {
-			return std::filesystem::path(std::string(buffer, count)).parent_path();
-		}
-		return {}; // Failed
-
-#else
-		return {}; // Unsupported platform
-#endif
-	}
-
-	std::string GLShader::getAbsoluteShaderPath(const std::string& path) {
-		auto exeDir = getExecutableDir();
-
-		// Search upwards up to 5 levels for GLRenderer/res/Shaders
-		std::filesystem::path shaderRoot;
-
-		std::filesystem::path searchDir = exeDir;
-		bool found = false;
-
-		for (int i = 0; i < 6; ++i) {
-			auto candidate = searchDir / "GLRenderer" / "res" / "Shaders";
-			if (std::filesystem::exists(candidate)) {
-				shaderRoot = candidate;
-				found = true;
-				break;
-			}
-			searchDir = searchDir.parent_path();
-			if (searchDir == searchDir.root_path()) break;
-		}
-
-		if (!found) {
-			throw std::runtime_error("Could not locate GLRenderer/res/Shaders folder relative to executable");
-		}
-
-		// Now append relative path (remove the "res/Shaders" prefix if present)
-		std::filesystem::path inputPath(path);
-		std::filesystem::path baseRel = "res/Shaders";
-
-		std::filesystem::path relativePath;
-
-		if (inputPath.string().find(baseRel.string()) != std::string::npos) {
-			relativePath = std::filesystem::relative(inputPath, baseRel);
-		}
-		else {
-			relativePath = inputPath;
-		}
-
-		auto fullPath = shaderRoot / relativePath;
-		fullPath = fullPath.lexically_normal();
-
-	//	std::cout << "[GLShader] Resolved shader path: " << fullPath << std::endl;
-
-		return fullPath.string();
 	}
 
 	//use program method
@@ -227,8 +146,8 @@ namespace GLRenderer {
 		std::string vertexCode_, fragmentCode_;
 
 		//function will handle file io for teh ifstreams and then put them into our vertex code and fragment code
-		std::string absVertPath = getAbsoluteShaderPath(vertexPath_);
-		std::string absFragPath = getAbsoluteShaderPath(fragmentPath_);
+		std::string absVertPath = getAbsoluteResourcePath(vertexPath_, "GLRenderer/res/Shaders");
+		std::string absFragPath = getAbsoluteResourcePath(fragmentPath_, "GLRenderer/res/Shaders");
 
 		handleFileIO(absVertPath, absFragPath, vertexCode_, fragmentCode_);
 

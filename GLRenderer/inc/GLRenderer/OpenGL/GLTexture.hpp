@@ -34,6 +34,7 @@ namespace GLRenderer {
         ~GLTexture2D() override;
 
         void loadTexture() override;
+        void loadTexture(const std::string& baseDir);
 
         void setWrap(GLTextureWrap s, GLTextureWrap t);
         void setFilter(GLTextureFilter minFilter, GLTextureFilter magFilter);
@@ -63,6 +64,7 @@ namespace GLRenderer {
 
     private:
         std::string filePath_;
+        std::string baseDir_ = "res/Textures";
         bool isLoaded_ = false;
         bool isCleaned_ = false;
         bool isVertFlipped_ = false;
