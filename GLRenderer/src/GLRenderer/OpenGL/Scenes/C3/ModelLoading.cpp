@@ -61,6 +61,63 @@ namespace GLRenderer {
         imguiInitialized_ = true;
     }
 
+    bool ModelLoading::drawVec3Control(const std::string& label, glm::vec3& values, float resetValue, bool isColor) {
+        bool valueChanged = false;
+
+        ImGui::PushID(label.c_str());
+
+        ImGui::Text("%s", label.c_str());
+        ImGui::SameLine();
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 4, 0 });
+
+        float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+        ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+        const char* labels[3] = { isColor ? "R" : "X", isColor ? "G" : "Y", isColor ? "B" : "Z" };
+        ImVec4 colors[3] = {
+            ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f },
+            ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f },
+            ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f }
+        };
+        ImVec4 hovered[3] = {
+            ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f },
+            ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f },
+            ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f }
+        };
+
+        float* components[3] = { &values.x, &values.y, &values.z };
+
+        for (int i = 0; i < 3; ++i) {
+            ImGui::PushStyleColor(ImGuiCol_Button, colors[i]);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, hovered[i]);
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors[i]);
+
+            if (ImGui::Button(labels[i], buttonSize)) {
+                *components[i] = resetValue;
+                valueChanged = true;
+            }
+            ImGui::PopStyleColor(3);
+            ImGui::SameLine();
+
+            std::string dragLabel = "##" + label + labels[i];
+
+            ImGui::PushItemWidth(60.0f); // Limit drag float width
+            if (ImGui::DragFloat(dragLabel.c_str(), components[i], 0.01f, isColor ? 0.0f : -1000.0f, isColor ? 1.0f : 1000.0f)) {
+                valueChanged = true;
+            }
+            ImGui::PopItemWidth();
+
+            if (i < 2)
+                ImGui::SameLine();
+        }
+
+        ImGui::PopStyleVar();
+        ImGui::PopID();
+
+        return valueChanged;
+    }
+
     void ModelLoading::renderTGLM_GUI() {
         if (ImGui::CollapsingHeader("Transformable Models", ImGuiTreeNodeFlags_DefaultOpen)) {
             static int selectedModelID = -1;
@@ -112,18 +169,18 @@ namespace GLRenderer {
                 glm::vec3 eulerAngles = glm::degrees(glm::eulerAngles(model->GetRotation()));
                 bool updated = false;
 
-                if (ImGui::SliderFloat3("Position", &position[0], -100.0f, 100.0f)) {
+                if (drawVec3Control("Position", position)) {
                     model->SetPosition(position);
                     updated = true;
                 }
 
-                if (ImGui::SliderFloat3("Rotation (Euler)", &eulerAngles[0], -180.0f, 180.0f)) {
+                if (drawVec3Control("Rotation", eulerAngles)) {
                     glm::quat newRot = glm::quat(glm::radians(eulerAngles));
                     model->SetRotation(newRot);
                     updated = true;
                 }
 
-                if (ImGui::SliderFloat3("Scale", &scale[0], 0.01f, 10.0f)) {
+                if (drawVec3Control("Scale   ", scale)) {
                     model->SetScale(scale);
                     updated = true;
                 }
@@ -152,7 +209,7 @@ namespace GLRenderer {
         ImGui::Text("Dynamic Lights");
 
         static int selectedLightID = -1;
-        bool lightsChanged = false; // Track if any light property changed
+        bool lightsChanged = false;
 
         if (ImGui::CollapsingHeader("Manage Lights", ImGuiTreeNodeFlags_DefaultOpen)) {
             if (ImGui::Button("Add Point Light")) {
@@ -197,7 +254,6 @@ namespace GLRenderer {
 
             ImGui::Separator();
 
-            // Prepare lights list for dropdown
             std::vector<std::pair<int, std::string>> lightEntries;
             for (const auto& [id, light] : lightManager_->GetAllLights()) {
                 std::string label = "Light #" + std::to_string(id) + " (" +
@@ -207,7 +263,6 @@ namespace GLRenderer {
                 lightEntries.emplace_back(id, label);
             }
 
-            // Find index of selectedLightID
             static int selectedIndex = -1;
             if (selectedLightID != -1) {
                 selectedIndex = -1;
@@ -218,12 +273,13 @@ namespace GLRenderer {
                     }
                 }
             }
-            else {
-                selectedIndex = -1;
+
+            const char* currentLabel = "None";
+            if (selectedIndex >= 0 && selectedIndex < (int)lightEntries.size()) {
+                currentLabel = lightEntries[selectedIndex].second.c_str();
             }
 
-            // Combo box to select light
-            if (ImGui::BeginCombo("Select Light", selectedIndex >= 0 ? lightEntries[selectedIndex].second.c_str() : "None")) {
+            if (ImGui::BeginCombo("Select Light", currentLabel)) {
                 for (int n = 0; n < (int)lightEntries.size(); n++) {
                     bool isSelected = (selectedIndex == n);
                     if (ImGui::Selectable(lightEntries[n].second.c_str(), isSelected)) {
@@ -236,7 +292,6 @@ namespace GLRenderer {
                 ImGui::EndCombo();
             }
 
-            // Edit selected light
             if (selectedLightID != -1) {
                 auto light = lightManager_->GetLight(selectedLightID);
                 if (!light) {
@@ -253,6 +308,7 @@ namespace GLRenderer {
                         std::cerr << "Error: dynamic_pointer_cast to GLPointLight failed" << std::endl;
                         return;
                     }
+
                     float intensity = pl->getIntensity();
                     glm::vec3 ambient = pl->getAmbient();
                     glm::vec3 diffuse = pl->getDiffuse();
@@ -266,22 +322,23 @@ namespace GLRenderer {
                         pl->setIntensity(intensity);
                         lightsChanged = true;
                     }
-                    if (ImGui::ColorEdit3("Ambient", &ambient[0])) {
+                    if (drawVec3Control("Ambient  ", ambient, 0.0f, true)) {
                         pl->setAmbient(ambient);
                         lightsChanged = true;
                     }
-                    if (ImGui::ColorEdit3("Diffuse", &diffuse[0])) {
+                    if (drawVec3Control("Diffuse  ", diffuse, 0.0f, true)) {
                         pl->setDiffuse(diffuse);
                         lightsChanged = true;
                     }
-                    if (ImGui::ColorEdit3("Specular", &specular[0])) {
+                    if (drawVec3Control("Specular ", specular, 0.0f, true)) {
                         pl->setSpecular(specular);
                         lightsChanged = true;
                     }
-                    if (ImGui::SliderFloat3("Position", &position[0], -100.0f, 100.0f)) {
+                    if (drawVec3Control("Position ", position, 0.0f, false)) {
                         pl->setPosition(position);
                         lightsChanged = true;
                     }
+
                     if (ImGui::SliderFloat("Constant", &constant, 0.0f, 2.0f)) {
                         pl->setConstant(constant);
                         lightsChanged = true;
@@ -304,19 +361,19 @@ namespace GLRenderer {
                         glm::vec3 specular = dirLight->getSpecular();
                         float intensity = dirLight->getIntensity();
 
-                        if (ImGui::SliderFloat3("Direction", &direction[0], -1.0f, 1.0f)) {
+                        if (drawVec3Control("Direction", direction, 0.0f, false)) {
                             dirLight->setDirection(direction);
                             lightsChanged = true;
                         }
-                        if (ImGui::ColorEdit3("Ambient", &ambient[0])) {
+                        if (drawVec3Control("Ambient  ", ambient, 0.0f, true)) {
                             dirLight->setAmbient(ambient);
                             lightsChanged = true;
                         }
-                        if (ImGui::ColorEdit3("Diffuse", &diffuse[0])) {
+                        if (drawVec3Control("Diffuse  ", diffuse, 0.0f, true)) {
                             dirLight->setDiffuse(diffuse);
                             lightsChanged = true;
                         }
-                        if (ImGui::ColorEdit3("Specular", &specular[0])) {
+                        if (drawVec3Control("Specular ", specular, 0.0f, true)) {
                             dirLight->setSpecular(specular);
                             lightsChanged = true;
                         }
@@ -345,24 +402,33 @@ namespace GLRenderer {
                             sl->setIntensity(intensity);
                             lightsChanged = true;
                         }
-                        if (ImGui::ColorEdit3("Ambient", &ambient[0])) {
+                        if (drawVec3Control("Ambient  ", ambient, 0.0f, true)) {
                             sl->setAmbient(ambient);
                             lightsChanged = true;
                         }
-                        if (ImGui::ColorEdit3("Diffuse", &diffuse[0])) {
+                        if (drawVec3Control("Diffuse  ", diffuse, 0.0f, true)) {
                             sl->setDiffuse(diffuse);
                             lightsChanged = true;
                         }
-                        if (ImGui::ColorEdit3("Specular", &specular[0])) {
+                        if (drawVec3Control("Specular ", specular, 0.0f, true)) {
                             sl->setSpecular(specular);
                             lightsChanged = true;
                         }
-                        if (ImGui::SliderFloat3("Position", &position[0], -100.0f, 100.0f)) {
+                        if (drawVec3Control("Position ", position, 0.0f, false)) {
                             sl->setPosition(position);
                             lightsChanged = true;
                         }
-                        if (ImGui::SliderFloat3("Direction", &direction[0], -1.0f, 1.0f)) {
+                        if (drawVec3Control("Direction", direction, 0.0f, false)) {
                             sl->setDirection(direction);
+                            lightsChanged = true;
+                        }
+
+                        if (ImGui::SliderFloat("Cutoff", &cutOff, 0.0f, 90.0f)) {
+                            sl->setCutOff(cutOff);
+                            lightsChanged = true;
+                        }
+                        if (ImGui::SliderFloat("Outer Cutoff", &outerCutOff, 0.0f, 90.0f)) {
+                            sl->setOuterCutOff(outerCutOff);
                             lightsChanged = true;
                         }
                         if (ImGui::SliderFloat("Constant", &constant, 0.0f, 2.0f)) {
@@ -377,20 +443,13 @@ namespace GLRenderer {
                             sl->setQuadratic(quadratic);
                             lightsChanged = true;
                         }
-                        if (ImGui::SliderFloat("Cutoff", &cutOff, 0.0f, 90.0f)) {
-                            sl->setCutOff(cutOff);
-                            lightsChanged = true;
-                        }
-                        if (ImGui::SliderFloat("Outer Cutoff", &outerCutOff, 0.0f, 90.0f)) {
-                            sl->setOuterCutOff(outerCutOff);
-                            lightsChanged = true;
-                        }
                     }
                 }
 
                 if (ImGui::Button("Remove Light")) {
                     lightManager_->RemoveLight(selectedLightID);
                     selectedLightID = -1;
+                    selectedIndex = -1; // Reset selectedIndex too!
                     lightsChanged = true;
                 }
             }

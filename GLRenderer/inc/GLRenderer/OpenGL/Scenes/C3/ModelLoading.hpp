@@ -121,6 +121,7 @@ namespace GLRenderer {
 		void renderLightingUI();
 		void renderTGLM_GUI();
 		void drawMaterialEditor(GLRenderer::GLMaterial& material);
+		bool drawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, bool isColor = false);
 		//void reloadResources();
 		void renderImGUI();
 	};
