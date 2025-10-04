@@ -152,8 +152,6 @@ namespace GLRenderer {
     }
 
     void ModelLoading::Cleanup() {
-        //cleanup mesh buffer, set is cleaned to true
-      //  model_->Cleanup();
 
         std::vector<int> toRemove;
         for (const auto& [id, model] : transformableModels_) {

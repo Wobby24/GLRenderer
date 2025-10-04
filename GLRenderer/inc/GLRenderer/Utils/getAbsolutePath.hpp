@@ -6,7 +6,11 @@
 
 #include <string>
 #ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable: 4005)  // Disable macro redefinition warning
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#pragma warning(pop)
 #else
 #include <unistd.h>
 #include <limits.h>

@@ -23,7 +23,7 @@ namespace GLRenderer {
 		void Render() override;
 		void Cleanup() override;
 		void SetWindow(Window::IWindow& window) override;
-		//void RenderGUI() override;
+
 		// Return a descriptor identifying this scene
 		SceneDescriptor GetSceneDescriptor() const override {
 			return SceneDescriptor{ SceneType::Model3D, 0 };
@@ -37,8 +37,7 @@ namespace GLRenderer {
 		std::unique_ptr<GLSceneInputHandler> inputHandler_;
 		std::unique_ptr<GLCamera> camera_;
 		std::unique_ptr<GLLightManager> lightManager_;
-		std::unique_ptr<GLModel> backpack_;
-		std::shared_ptr<TransformableGLModel> model_;
+
 		std::unordered_map<int, std::shared_ptr<TransformableGLModel>> transformableModels_;
 
 		void SetupBuffers();
