@@ -28,7 +28,7 @@ namespace GLRenderer
     private:
         void InitializeDefaults();
         void InitializeOpenGL(IRendererContextDesc& contextDesc);
-        void InitializeScenes();
+        void LoadInitialScene();
         bool isInitialized_ = false;
         bool isCleanedUp_ = false;
 

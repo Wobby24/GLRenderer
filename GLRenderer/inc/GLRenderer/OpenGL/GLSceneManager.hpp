@@ -8,9 +8,9 @@
 #include <memory>
 #include <optional>
 
-namespace GLRenderer {
-    using SceneHandle = std::size_t; // Define this at the top
+using SceneHandle = std::size_t; // Define this at the top
 
+namespace GLRenderer {
     class GLSceneManager : public ISceneManager {
     public:
         GLSceneManager();

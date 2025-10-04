@@ -7,13 +7,12 @@
 #include <GLRenderer/Interface/Types/Vertex.hpp>
 #include <GLRenderer/OpenGL/GLShader.hpp>
 #include <GLRenderer/OpenGL/GLMeshBuffers.hpp>
-#include <GLRenderer/Interface/IResizableScene.hpp>
 #include <GLRenderer/OpenGL/GLSceneInputHandler.hpp>
 #include <iostream>
 #include <memory>
 
 namespace GLRenderer {
-	class Quad3D : public IResizableScene {
+	class Quad3D : public IRenderScene {
 	public:
 		Quad3D();
 		~Quad3D() override;

@@ -3,9 +3,8 @@
 #include <GLRenderer/Window/Interface/IWindow.hpp>
 #include <GLRenderer/Interface/IRenderScene.hpp>
 #include <GLRenderer/OpenGL/GLShader.hpp>
-#include <GLRenderer/Interface/IResizableScene.hpp>
 #include <GLRenderer/OpenGL/GLSceneInputHandler.hpp>
-//#include <GLRenderer/OpenGL/Lighting/GLMaterial.hpp>
+#include <GLRenderer/OpenGL/Lighting/GLMaterial.hpp>
 #include <GLRenderer/OpenGL/Lighting/Types/GLPointLight.hpp>
 #include <GLRenderer/OpenGL/Lighting/GLLightManager.hpp>
 #include <GLRenderer/OpenGL/GLModel.hpp>
@@ -14,7 +13,7 @@
 #include <memory>
 
 namespace GLRenderer {
-	class ModelLoading : public IResizableScene {
+	class ModelLoading : public IRenderScene {
 	public:
 		ModelLoading();
 		~ModelLoading() override;
@@ -120,7 +119,7 @@ namespace GLRenderer {
 		void cleanupImGUI();
 		void renderLightingUI();
 		void renderTGLM_GUI();
-		void drawMaterialEditor(GLRenderer::GLMaterial& material);
+		void drawMaterialEditor(GLMaterial& material);
 		bool drawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, bool isColor = false);
 		//void reloadResources();
 		void renderImGUI();

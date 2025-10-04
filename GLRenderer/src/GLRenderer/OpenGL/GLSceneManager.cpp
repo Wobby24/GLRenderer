@@ -1,5 +1,4 @@
 #include <GLRenderer/OpenGL/GLSceneManager.hpp>
-#include <GLRenderer/Interface/IResizableScene.hpp>
 #include <GLRenderer/Interface/ISceneManager.hpp>
 #include <GLRenderer/Window/Interface/IWindow.hpp>
 #include <stdexcept>
@@ -76,27 +75,20 @@ namespace GLRenderer {
     }
 
     void GLSceneManager::resizeCurrent(int width, int height) {
-        // Implement or leave empty if not used yet
         if (auto scene = getCurrentScene()) {
-            if (auto resizable = dynamic_cast<IResizableScene*>(scene)) {
-                resizable->OnWindowResize(width, height);
-            }
+            scene->OnWindowResize(width, height);  // safe to call on any scene now
         }
     }
 
     void GLSceneManager::setWindowToCurrent(Window::IWindow& window) {
         if (auto scene = getCurrentScene()) {
-            if (auto resizable = dynamic_cast<IResizableScene*>(scene)) {
-                resizable->SetWindow(window);  // You'd implement this in the scene
-            }
+            scene->SetWindow(window);
         }
     }
 
     void GLSceneManager::setWindowToAll(Window::IWindow& window) {
         for (auto& scene : scenes_) {
-            if (auto resizable = dynamic_cast<IResizableScene*>(scene.get())) {
-                resizable->SetWindow(window);
-            }
+            scene->SetWindow(window);
         }
     }
 
@@ -131,9 +123,7 @@ namespace GLRenderer {
 
     void GLSceneManager::resizeAll(int width, int height) {
         for (auto& scene : scenes_) {
-            if (auto resizable = dynamic_cast<IResizableScene*>(scene.get())) {
-                resizable->OnWindowResize(width, height);
-            }
+            scene->OnWindowResize(width, height);
         }
     }
 

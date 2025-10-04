@@ -6,7 +6,6 @@
 #include <GLRenderer/Interface/Types/Vertex.hpp>
 #include <GLRenderer/OpenGL/GLShader.hpp>
 #include <GLRenderer/OpenGL/GLMeshBuffers.hpp>
-#include <GLRenderer/Interface/IResizableScene.hpp>
 #include <GLRenderer/OpenGL/GLSceneInputHandler.hpp>
 #include <GLRenderer/OpenGL/Lighting/GLMaterial.hpp>
 #include <GLRenderer/OpenGL/Lighting/Types/GLPointLight.hpp>
@@ -15,7 +14,7 @@
 #include <memory>
 
 namespace GLRenderer {
-	class LightingCubes : public IResizableScene {
+	class LightingCubes : public IRenderScene {
 	public:
 		LightingCubes();
 		~LightingCubes() override;

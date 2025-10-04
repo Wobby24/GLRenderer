@@ -85,7 +85,7 @@ set(PROJECT_SOURCES
     "${SRC_DIR}/GLRenderer/OpenGL/GLModel.cpp"
     "${SRC_DIR}/GLRenderer/OpenGL/Scenes/C3/ModelLoading.cpp"
     "${SRC_DIR}/stb_image/stb_image.cpp"
- "GLRenderer/src/GLRenderer/OpenGL/GLTextureCache.cpp" "GLRenderer/src/GLRenderer/OpenGL/GLTextureBinder.cpp")
+ "GLRenderer/src/GLRenderer/OpenGL/GLTextureCache.cpp" "GLRenderer/src/GLRenderer/OpenGL/GLTextureBinder.cpp" "GLRenderer/src/GLRenderer/OpenGL/Scenes/C3/ModelLoadingGUI.cpp")
 
 # External dependencies
 include(FetchContent)

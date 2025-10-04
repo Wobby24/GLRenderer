@@ -25,7 +25,7 @@ namespace GLRenderer
         state_.ApplyState();
         sceneManager_.init();
 
-        InitializeScenes(); // <-- put this here instead
+        LoadInitialScene(); // <-- put this here instead
         lastTime_ = glfwGetTime();
     }
 
@@ -52,7 +52,7 @@ namespace GLRenderer
         }
     }
 
-    void GLRenderer::InitializeScenes() {
+    void GLRenderer::LoadInitialScene() {
         auto scene = std::make_unique<ModelLoading>();
 
         // Save the handle returned by addScene
