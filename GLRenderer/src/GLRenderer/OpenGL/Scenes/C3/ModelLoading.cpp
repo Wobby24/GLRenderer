@@ -36,7 +36,7 @@ namespace GLRenderer {
 
         auto& attrs = camera_.get()->getAttributes();
         attrs.position = glm::vec3(0.0f, 0.0f, 3.0f);
-        attrs.targetPosition = attrs.position;  // This is key!
+        attrs.targetPosition = attrs.position;  
     }
 
     void ModelLoading::initResources() {

@@ -36,11 +36,6 @@ namespace GLRenderer
         GLRendererContextDesc contextDesc_{};
 		GLRenderState state_{};
         GLSceneManager sceneManager_;
-		//HelloTriangle helloTriangleScene_;
-       // TexturedQuad texturedTriangleScene_;
-       // std::unique_ptr<LightingCubes>  lightCubes_;
-       // std::unique_ptr<Quad3D> quad3DScene_;
-       // std::unique_ptr<ModelLoading> modelLoadingScene_;
 
         Window::IWindow* window_ = nullptr; // Non-owning pointer
         IRenderSurface* surface_;

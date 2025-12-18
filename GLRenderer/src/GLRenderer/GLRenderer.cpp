@@ -11,8 +11,6 @@
 
 namespace GLRenderer
 {
-
-   // GLRenderer::GLRenderer() : isInitialized_(false), isCleanedUp_(false) {}
     
     GLRenderer::~GLRenderer() {
         if (isCleanedUp_) return;
@@ -28,7 +26,6 @@ namespace GLRenderer
         isInitialized_ = true;
         state_.ApplyState();
 
-       // LoadInitialScene(); // <-- put this here instead
         lastTime_ = glfwGetTime();
     }
 
@@ -83,9 +80,10 @@ namespace GLRenderer
         deltaTime = static_cast<float>(currentTime - lastTime_);
         lastTime_ = currentTime;
 
+        sceneManager_.setWindow(*window_);
         sceneManager_.resizeCurrent(surface_->GetSize().x, surface_->GetSize().y);
-        sceneManager_.renderCurrent();
         sceneManager_.updateCurrent(deltaTime);
+        sceneManager_.renderCurrent();
 
         surface_->Present();
     }
