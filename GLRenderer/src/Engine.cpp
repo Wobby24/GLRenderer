@@ -2,7 +2,10 @@
 
 #include "Engine.hpp"
 #include <stdexcept>
+#include <memory>
 #include <iostream>
+#include <utility>
+#include "GLRenderer/OpenGL/Scenes/C3/ModelLoading.hpp"
 #include <GLFW/glfw3.h>  // for glfwGetTime, glfwPollEvents, etc.
 
 void Engine::initialize()
@@ -28,8 +31,19 @@ void Engine::initialize()
     // Create renderer instance
     renderer_ = std::make_unique<GLRenderer::GLRenderer>();
 
+    // create init scene (for testing)
+    std::unique_ptr<GLRenderer::ModelLoading> modelScene;
+
+    modelScene = std::make_unique<GLRenderer::ModelLoading>();
+ 
     // Initialize renderer with context and window reference
-    renderer_->Initialize(ctxDesc, *window_);
+    renderer_->Initialize(ctxDesc, *window_->GetSurface());
+
+    renderer_->SetWindow(*window_);
+
+    modelScene->Init();
+
+    renderer_->SetScene(std::move(modelScene));
 }
 
 void Engine::run()

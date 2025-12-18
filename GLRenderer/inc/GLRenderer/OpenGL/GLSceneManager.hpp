@@ -16,27 +16,15 @@ namespace GLRenderer {
         GLSceneManager();
         ~GLSceneManager() override;
 
-        void init();
-        void cleanup();
+        void setScene(std::unique_ptr<IRenderScene> scene);
+        IRenderScene* getCurrentScene() const { return currentScene_.get(); }
 
-        SceneHandle addScene(std::unique_ptr<IRenderScene> scene) override;
-        void initAll() override;
-        void cleanupAll() override;
-
-        void updateAll(float deltaTime) override;
-        void renderAll() override;
-        void resizeAll(int width, int height) override;
-        void setWindowToAll(Window::IWindow& window);
-
-        void setCurrentScene(SceneHandle handle) override;
-        IRenderScene* getCurrentScene() const override;
-
-        void updateCurrent(float deltaTime) override;
-        void renderCurrent() override;
         void initCurrent() override;
         void cleanupCurrent() override;
-        void resizeCurrent(int width, int height) override;
-        void setWindowToCurrent(Window::IWindow& window);
+        void renderCurrent() override;
+        void updateCurrent(float dt) override;
+        void resizeCurrent(int w, int h) override;
+        void setWindow(Window::IWindow& window);
 
         // Prevent accidental copying or moving
         GLSceneManager(const GLSceneManager&) = delete;
@@ -45,13 +33,8 @@ namespace GLRenderer {
         GLSceneManager& operator=(GLSceneManager&&) = delete;
 
     private:
-        std::vector<std::unique_ptr<IRenderScene>> scenes_;
-        std::optional<SceneHandle> currentSceneIndex_; // ADD THIS
-
-        bool isCleanedUp_ = false;
-        bool isInit_ = false;
-        bool allScenesCleanedUp_ = false;
-        bool allScenesInit_ = false;
+        std::unique_ptr<IRenderScene> currentScene_;
+        Window::IWindow* window_;
     };
 
 }

@@ -5,43 +5,12 @@
 #include <iostream>
 
 namespace GLRenderer {
-    GLSceneManager::GLSceneManager() : isCleanedUp_(false), isInit_(false), allScenesCleanedUp_(false), allScenesInit_(false) {};
+    GLSceneManager::GLSceneManager() : window_(nullptr) {
+    
+    };
 
     GLSceneManager::~GLSceneManager() {
-        cleanupAll();
     }
-
-    void GLSceneManager::init() {
-        if (isInit_) return;
-        isInit_ = true;
-        scenes_.reserve(4);
-    }
-
-    void GLSceneManager::cleanup() {
-        if (isCleanedUp_) return;
-        cleanupAll();
-        isCleanedUp_ = true;
-    }
-
-    SceneHandle GLSceneManager::addScene(std::unique_ptr<IRenderScene> scene) {
-        scenes_.push_back(std::move(scene));
-        return scenes_.size() - 1;
-    }
-
-    void GLSceneManager::setCurrentScene(SceneHandle handle) {
-        if (handle >= scenes_.size()) {
-            throw std::out_of_range("Invalid scene handle");
-        }
-        currentSceneIndex_ = handle;
-    }
-
-    IRenderScene* GLSceneManager::getCurrentScene() const {
-        if (!currentSceneIndex_.has_value()) {
-            return nullptr;
-        }
-        return scenes_[currentSceneIndex_.value()].get();
-    }
-
 
     void GLSceneManager::renderCurrent() {
         auto scene = getCurrentScene();
@@ -52,13 +21,22 @@ namespace GLRenderer {
         scene->Render();
     }
 
-
     void GLSceneManager::updateCurrent(float deltaTime)
     {
         if (auto scene = getCurrentScene()) {
             scene->Update(deltaTime);
         }
     }
+
+    void GLSceneManager::setWindow(Window::IWindow& window)
+    {
+        window_ = &window;
+
+        if (currentScene_) {
+            currentScene_->SetWindow(window);
+        }
+    }
+
 
     void GLSceneManager::initCurrent()
     {
@@ -80,51 +58,20 @@ namespace GLRenderer {
         }
     }
 
-    void GLSceneManager::setWindowToCurrent(Window::IWindow& window) {
-        if (auto scene = getCurrentScene()) {
-            scene->SetWindow(window);
+    void GLSceneManager::setScene(std::unique_ptr<IRenderScene> scene)
+    {
+        if (currentScene_) {
+            currentScene_->Cleanup();
         }
-    }
 
-    void GLSceneManager::setWindowToAll(Window::IWindow& window) {
-        for (auto& scene : scenes_) {
-            scene->SetWindow(window);
-        }
-    }
+        currentScene_ = std::move(scene);
 
-    void GLSceneManager::initAll() {
-        if (allScenesInit_) return;
-        for (auto& scene : scenes_) {
-            scene->Init();
+        if (!window_) {
+            throw std::logic_error("Scene set before window assignment");
         }
-        allScenesInit_ = true;
-        allScenesCleanedUp_ = false;
-    }
 
-    void GLSceneManager::cleanupAll() {
-        if (allScenesCleanedUp_) return;
-        for (auto& scene : scenes_) {
-            scene->Cleanup();
-        }
-        allScenesCleanedUp_ = true;
-    }
-
-    void GLSceneManager::updateAll(float deltaTime) {
-        for (auto& scene : scenes_) {
-            scene->Update(deltaTime);
-        }
-    }
-
-    void GLSceneManager::renderAll() {
-        for (auto& scene : scenes_) {
-            scene->Render();
-        }
-    }
-
-    void GLSceneManager::resizeAll(int width, int height) {
-        for (auto& scene : scenes_) {
-            scene->OnWindowResize(width, height);
-        }
+        currentScene_->SetWindow(*window_);
+        currentScene_->Init();
     }
 
 }

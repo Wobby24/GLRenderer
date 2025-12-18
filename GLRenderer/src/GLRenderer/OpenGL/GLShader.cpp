@@ -181,9 +181,7 @@ namespace GLRenderer {
 	void GLShader::reload() {
 		assertInitialized();
 
-		if (!isCleanedUp_) {
-			cleanup();
-		}
+		cleanup();
 		isCleanedUp_ = false; // mark as active again
 
 		uniformLocationCache_.clear();

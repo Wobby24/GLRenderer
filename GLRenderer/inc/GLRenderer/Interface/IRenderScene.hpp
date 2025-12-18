@@ -10,6 +10,7 @@ namespace GLRenderer {
         Quad3D,
         LightingCubes,
         Model3D,
+        DepthTesting,
         // etc
     };
 

@@ -52,6 +52,9 @@ namespace GLRenderer::Window
 		glfwMakeContextCurrent(window_);
 		glfwSwapInterval(1);  // 0 = VSync off, 1 = VSync on
 		glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+		// Create the render surface
+		surface_ = std::make_unique<GLFWRenderSurface>(window_);
 	}
 
 	GLFW_Window::~GLFW_Window()

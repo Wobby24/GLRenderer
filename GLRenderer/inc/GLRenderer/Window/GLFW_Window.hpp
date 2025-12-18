@@ -3,6 +3,8 @@
 #include <string>
 #include <GLFW/glfw3.h>
 #include <GLRenderer/Window/Interface/IWindow.hpp>
+#include <memory>
+#include <GLRenderer/Window/GLFWRenderSurface.hpp>
 
 namespace GLRenderer::Window
 {
@@ -46,6 +48,8 @@ namespace GLRenderer::Window
 		// Return native handle for internal use or advanced scenarios
 		void* GetNativeHandle() const override { return static_cast<void*>(window_); }
 
+		::GLRenderer::IRenderSurface* GetSurface() { return surface_.get(); }
+
 	private:
 		GLFWwindow* window_ = nullptr;
 		int width_ = 800;
@@ -56,6 +60,7 @@ namespace GLRenderer::Window
 		bool isCleanedUp_ = false;
 
 		WindowState state_;
+		std::unique_ptr<::GLRenderer::GLFWRenderSurface> surface_;
 
 		static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 		void HandleInternalInput();
