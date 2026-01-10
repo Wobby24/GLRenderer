@@ -25,6 +25,6 @@ namespace VR_Engine {
 
         void VR_Test_Scene::handleInput(Platform::Input::IInputService* inputService) {
 
-        }
+        }            
 	}
 }

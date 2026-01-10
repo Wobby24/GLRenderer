@@ -9,7 +9,6 @@
 namespace VR_Engine {
     void VR_Engine::initialize()
     {
-        Renderer::IRendererContextDesc ctxDesc{};
         //vsync by default is off. we can toggle it, and if needed, we can get its state. idk its not insanely clean, but its easy to use for input and isnt that much more work to do
         window_.get()->ToggleVSync();
         //pointer lock is also off by default, again we toggle it to enable
@@ -17,8 +16,8 @@ namespace VR_Engine {
         //set window icon
         window_.get()->SetWindowIcon("res/Other/ICON.png");
 
-        // Initialize renderer with context and window reference
-        renderer_->Initialize(ctxDesc, window_->GetSurface());
+        auto ctxDesc = renderer_->CreateDefaultContextDesc(); // returns std::unique_ptr<IRendererContextDesc>
+        renderer_->Initialize(*ctxDesc, window_->GetSurface());
 
         scene_->setRenderScene(std::move(systemScenes.renderScene_));
     }

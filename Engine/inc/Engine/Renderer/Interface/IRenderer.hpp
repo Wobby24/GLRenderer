@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <Renderer/Interface/Types/IRendererContextDesc.hpp>
 #include <Platform/RenderSurface/Interface/IRenderSurface.hpp>
 
@@ -20,6 +21,8 @@ namespace Renderer {
 
         // Optional: swap render targets / surfaces
         virtual void SetRenderSurface(Platform::RenderSurface::IRenderSurface* surface) = 0;
+
+        virtual std::unique_ptr<IRendererContextDesc> CreateDefaultContextDesc() = 0;
 
         // Cleanup GPU resources
         virtual void Cleanup() = 0;

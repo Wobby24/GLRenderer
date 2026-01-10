@@ -19,11 +19,12 @@ namespace Renderer {
         class GLRenderer : public ::Renderer::IRenderer
         {
         public:
-            GLRenderer() = default;
+            GLRenderer();
             ~GLRenderer() override;
 
             void Initialize(IRendererContextDesc& contextDesc, Platform::RenderSurface::IRenderSurface& surface) override;
             void SetRenderSurface(Platform::RenderSurface::IRenderSurface* surface) override;
+            std::unique_ptr<IRendererContextDesc> CreateDefaultContextDesc() override;
             void RenderScene(const IRenderScene& renderScene) override;
             void Cleanup() override;
 

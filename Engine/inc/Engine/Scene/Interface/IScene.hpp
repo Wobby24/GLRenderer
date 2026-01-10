@@ -25,7 +25,7 @@ namespace VR_Engine {
             // Update scene logic (animations, etc.)
             virtual void update(float deltaTime) = 0;
 
-            virtual void handleInput(Platform::Input::IInputService* input);
+            virtual void handleInput(Platform::Input::IInputService* input) = 0;
 
         };
     }

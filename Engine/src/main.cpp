@@ -9,7 +9,10 @@ int main() {
 
     auto renderer = std::make_unique<Renderer::OpenGL::GLRenderer>();
     auto window = std::make_unique<Platform::Window::GLFW_Window>();
-    auto inputService = std::make_unique<Platform::Input::GLFW_InputService>(window.get());
+    auto inputService = std::make_unique<Platform::Input::GLFW_InputService>(
+        static_cast<GLFWwindow*>(window->GetNativeHandle())
+    );
+
     
     auto scene = std::make_unique<VR_Engine::Scene::VR_Test_Scene>();
 
@@ -17,8 +20,9 @@ int main() {
     engine.setWindow(std::move(window));
     engine.setInputService(std::move(inputService));
 
-    engine.initialize();
     engine.setScene(std::move(scene));
+
+    engine.initialize();
     engine.run();
     engine.shutdown();
 

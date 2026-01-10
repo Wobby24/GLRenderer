@@ -12,6 +12,14 @@
 
 namespace Renderer {
     namespace OpenGL {
+        GLRenderer::GLRenderer()
+            : surface_(nullptr),
+            isInitialized_(false),
+            isCleanedUp_(false),
+            deltaTime(0.0f)
+        {
+        }
+
         GLRenderer::~GLRenderer() {
             if (isCleanedUp_) return;
             Cleanup();
@@ -34,6 +42,15 @@ namespace Renderer {
             surface_ = surface;
         }
 
+        // GLRenderer.cpp
+        std::unique_ptr<IRendererContextDesc> GLRenderer::CreateDefaultContextDesc() {
+            auto desc = std::make_unique<GLRendererContextDesc>();
+            desc->majorVersion = 3;
+            desc->majorVersion = 3;
+            return desc; // returned as base pointer
+        }
+
+
         void GLRenderer::InitializeDefaults()
         {
             // Set default render state
@@ -47,7 +64,7 @@ namespace Renderer {
             auto* glContextDesc = dynamic_cast<GLRendererContextDesc*>(&contextDesc);
             if (!glContextDesc)
             {
-                throw std::runtime_error("GLRenderer: Invalid context descriptor type.");
+                    throw std::runtime_error("GLRenderer: Invalid context descriptor type.");
             }
 
             contextDesc_ = *glContextDesc;
